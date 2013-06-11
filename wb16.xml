@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="spisnif" version="0.1">
+    <description>
+        spisnif
+    </description>
+
+    <generics>
+        <generic name="id" public="true" value="1" match="\d+" type="natural" destination="both" />
+    </generics>
+
+    <driver_files>
+        <driver_templates architecture="armadeus">
+            <support version="3" />
+            <file name="spisnif.h" />
+            <file name="spisnif.c" />
+            <file name="board_spisnif.c" />
+            <file name="Kconfig" />
+            <file name="Makefile" />
+        </driver_templates>
+    </driver_files>
+
+    <hdl_files>
+        <hdl_file filename="spisnif.vhd" scope="all" istop="1" />
+    </hdl_files>
+
+    <interrupts>
+        <interrupt interface="wbs_interrupt" port="wbs_irq" />
+    </interrupts>
+
+    <interfaces>
+
+        <interface name="spi" class="gls">
+            <ports>
+                <port name="sck"  type="EXPORT" size="1" dir="in"/>
+                <port name="mosi" type="EXPORT" size="1" dir="in"/>
+                <port name="miso" type="EXPORT" size="1" dir="in"/>
+                <port name="cs"   type="EXPORT" size="1" dir="in"/>
+            </ports>
+        </interface>
+
+        <interface name="wbs_interrupt" class="gls">
+            <ports>
+                <port name="wbs_irq" type="EXPORT" size="1" dir="out" />
+            </ports>
+        </interface>
+
+        <interface name="swb16" class="slave" bus="wishbone16" >
+            <registers>
+                <register name=""       offset="0x00" size="16" rows="1" />
+            </registers>
+            <ports>
+                <port name="gls_reset" type="RST" size="1" dir="in"/>
+                <port name="gls_clk"   type="CLK" size="1" dir="in"/>
+                <port name="wbs_add"       type="ADR"   size="4"  dir="in"/>
+                <port name="wbs_writedata" type="DAT_I" size="16" dir="in"/>
+                <port name="wbs_readdata"  type="DAT_O" size="16" dir="out"/>
+                <port name="wbs_strobe"    type="STB"   size="1"  dir="in"/>
+                <port name="wbs_cycle" type="CYC" size="1" dir="in"/>
+                <port name="wbs_write" type="WE"  size="1" dir="in"/>
+                <port name="wbs_ack"   type="ACK" size="1" dir="out"/>
+            </ports>
+        </interface>
+    </interfaces>
+
+</component>

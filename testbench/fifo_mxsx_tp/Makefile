@@ -3,7 +3,7 @@
 # Fabien Marteau
 
 # project name
-PROJECT=fifo
+PROJECT=fifo_mxsx
 
 # vhdl files
 TESTBENCH_FILE=$(PROJECT)_tb.vhd

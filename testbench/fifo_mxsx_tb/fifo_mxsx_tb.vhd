@@ -61,90 +61,80 @@ end component;
 
 begin
 
-inst_fifo_mxsx : fifo_mxsx port map (
-	clk => imx_clk,
-	reset => reset,
-	write => write,
-	read_data => read_data,
-	read_desc => read_desc,
-	data_in => data_in,
-	write_enable => write_enable,
-	is_empty => is_empty,
-	is_full => is_full,
-	data_out => data_out);
-
-
--- print time debug
-time_count : process
-variable time_c : natural := 0;
-begin
-report "Time "&integer'image(time_c)&" us";
-wait for 10 us;
-time_c := time_c + 10;
-end process time_count;
-
 -- fifo connections
+    inst_fifo_mxsx : fifo_mxsx
+    port map (
+	    clk          => imx_clk,
+	    reset        => reset,
+	    write        => write,
+	    read_data    => read_data,
+	    read_desc    => read_desc,
+	    data_in      => data_in,
+	    write_enable => write_enable,
+	    is_empty     => is_empty,
+	    is_full      => is_full,
+	    data_out     => data_out);
 
-stimulis : process
-begin
-reset <= '1';
-write <= '0';
-read_data <= '0';
-read_desc <= '0';
-data_in <= '0';
-write_enable <= '0';
-wait for 20 ns;
-reset <= '0';
-wait for 20 ns;
-data_in <= '1';
-wait for 20 ns;
-write_enable <= '1';
-write <= '1';
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-write_enable <= '0';
-write <= '0';
-wait for 20 ns;
-write_enable <= '1';
-write <= '1';
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-wait for 20 ns;
-write_enable <= '0';
-write <= '0';
-wait for 20 ns;
-read_desc <= '1';
-wait for 20 ns;
-read_desc <= '0';
-read_data <= '1';
-wait for 20 ns;
-assert false report "*** End of test ***" severity error;
-end process stimulis;
 
-------------
--- clocks --
-------------
-imx_clk_p : process
-begin
-imx_clk <= '1';
-wait for HALF_PERIODE_IMX_CLK;
-imx_clk <= '0';
-wait for HALF_PERIODE_IMX_CLK;
-end process imx_clk_p;
+    -- print time debug
+    time_count : process
+    variable time_c : natural := 0;
+    begin
+        report "Time "&integer'image(time_c)&" us";
+        wait for 10 us;
+        time_c := time_c + 10;
+    end process time_count;
+
+
+    stimulis : process
+    begin
+        reset <= '1';
+        write <= '0';
+        read_data <= '0';
+        read_desc <= '0';
+        data_in <= '0';
+        write_enable <= '0';
+        wait for 20 ns;
+        reset <= '0';
+
+        wait for 20 ns;
+        data_in <= '1';
+        wait for 20 ns;
+        write_enable <= '1';
+        write <= '1';
+        wait for 20 ns;
+        wait for 20 ns;
+        wait for 20 ns;
+        write_enable <= '0';
+        write <= '0';
+        wait for 20 ns;
+        write_enable <= '1';
+        write <= '1';
+        for i in 0 to 16 loop
+            wait for 20 ns;
+        end loop;
+        write_enable <= '0';
+        write <= '0';
+        wait for 20 ns;
+        read_desc <= '1';
+        wait for 20 ns;
+        read_desc <= '0';
+        read_data <= '1';
+
+        wait for 20 ns;
+        assert false report "*** End of test ***" severity error;
+    end process stimulis;
+
+    ------------
+    -- clocks --
+    ------------
+    imx_clk_p : process
+    begin
+        imx_clk <= '1';
+        wait for HALF_PERIODE_IMX_CLK;
+        imx_clk <= '0';
+        wait for HALF_PERIODE_IMX_CLK;
+    end process imx_clk_p;
 
 end architecture fifo_tb_1;
+

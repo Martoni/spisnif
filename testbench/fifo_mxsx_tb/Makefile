@@ -8,6 +8,7 @@ PROJECT=fifo_mxsx
 # vhdl files
 TESTBENCH_FILE=$(PROJECT)_tb.vhd
 FILES=../../hdl/fifo_mxsx.vhd
+FILES+=../../hdl/dual_ports_ram_16b_1b.vhd
 
 # testbench
 SIMTOP =$(PROJECT)_tb

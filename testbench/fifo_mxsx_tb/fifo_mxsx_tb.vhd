@@ -38,8 +38,7 @@ signal imx_clk : std_logic;
 signal reset : std_logic;
 signal write : std_logic;
 signal read_data : std_logic;
-signal read_desc : std_logic;
-signal data_in : std_logic;
+signal data_in : std_logic_vector(0 downto 0);
 signal write_enable : std_logic;
 signal is_empty : std_logic;
 signal is_full : std_logic;
@@ -51,8 +50,7 @@ port(
 	reset : in std_logic;
 	write : in std_logic;
 	read_data : in std_logic;
-	read_desc : in std_logic;
-	data_in : in std_logic;
+	data_in : in std_logic_vector(0 downto 0);
 	write_enable : in std_logic;
 	is_empty : out std_logic;
 	is_full : out std_logic;
@@ -68,7 +66,6 @@ begin
 	    reset        => reset,
 	    write        => write,
 	    read_data    => read_data,
-	    read_desc    => read_desc,
 	    data_in      => data_in,
 	    write_enable => write_enable,
 	    is_empty     => is_empty,
@@ -91,14 +88,13 @@ begin
         reset <= '1';
         write <= '0';
         read_data <= '0';
-        read_desc <= '0';
-        data_in <= '0';
+        data_in <= "0";
         write_enable <= '0';
         wait for 20 ns;
         reset <= '0';
 
         wait for 20 ns;
-        data_in <= '1';
+        data_in <= "1";
         wait for 20 ns;
         write_enable <= '1';
         write <= '1';
@@ -116,9 +112,6 @@ begin
         write_enable <= '0';
         write <= '0';
         wait for 20 ns;
-        read_desc <= '1';
-        wait for 20 ns;
-        read_desc <= '0';
         read_data <= '1';
 
         wait for 20 ns;

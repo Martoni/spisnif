@@ -19,6 +19,7 @@
 -- File          : dual_ports_ram_16b_1b.vhd
 -- Created on    : 20/06/2013
 -- Author        : Fabien Marteau <fabien.marteau@armadeus.com>
+--                 modified by Kevin Joly <joly.kevin25@gmail.com>
 --
 -- For synthesis
 -- 
@@ -46,7 +47,7 @@ Entity dual_ports_ram_16b_1b is
 end entity;
 
 Architecture dual_ports_ram_16b_1b_1 of dual_ports_ram_16b_1b is
-
+signal n_write : std_logic;
 begin
 
 
@@ -156,14 +157,16 @@ begin
       DIA => din_1b,       -- Port A 1-bit Data Input
       DIB => "0000000000000000",       -- Port B 16-bit Data Input
       DIPB => "00",     -- Port-B 2-bit parity Input
-      ENA => '1',       -- Port A RAM Enable Input
-      ENB => '0',       -- PortB RAM Enable Input
+      ENA => write,       -- Port A RAM Enable Input
+      ENB => n_write,       -- PortB RAM Enable Input
       SSRA => '0',     -- Port A Synchronous Set/Reset Input
       SSRB => '0',     -- Port B Synchronous Set/Reset Input
       WEA => write,       -- Port A Write Enable Input
       WEB => '0'        -- Port B Write Enable Input
    );
    -- End of RAMB16_S1_S18_inst instantiation
+
+   n_write <= not write;
 
 end architecture dual_ports_ram_16b_1b_1;
 

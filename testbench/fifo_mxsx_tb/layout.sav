@@ -1,61 +1,66 @@
 [*]
 [*] GTKWave Analyzer v3.3.37 (w)1999-2012 BSI
-[*] Sat Jun 15 13:13:18 2013
+[*] Mon Jun 24 21:30:26 2013
 [*]
-[dumpfile] "/home/kevin/Projets/spisnif/spisnif/testbench/fifo_mxsx_tp/simu/fifo_mxsx_tb.ghw"
-[dumpfile_mtime] "Sat Jun 15 09:38:28 2013"
-[dumpfile_size] 1617
-[savefile] "/home/kevin/Projets/spisnif/spisnif/testbench/fifo_mxsx_tp/layout.sav"
-[timestart] 170700000
-[size] 1022 579
+[dumpfile] "/home/kevin/Projets/spisnif/spisnif/testbench/fifo_mxsx_tb/simu/fifo_mxsx_tb.ghw"
+[dumpfile_mtime] "Mon Jun 24 21:29:08 2013"
+[dumpfile_size] 4067
+[savefile] "/home/kevin/Projets/spisnif/spisnif/testbench/fifo_mxsx_tb/layout.sav"
+[timestart] 0
+[size] 1022 747
 [pos] -1 -1
-*-25.112576 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-25.331188 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.fifo_mxsx_tb.
 [treeopen] top.fifo_mxsx_tb.inst_fifo_mxsx.
-[treeopen] top.fifo_mxsx_tb.inst_fifo_mxsx.data.
-[sst_width] 201
-[signals_width] 142
+[treeopen] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.
+[treeopen] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.
+[sst_width] 217
+[signals_width] 150
 [sst_expanded] 1
-[sst_vpaned_height] 148
-@28
-top.fifo_mxsx_tb.inst_fifo_mxsx.clk
-top.fifo_mxsx_tb.inst_fifo_mxsx.reset
+[sst_vpaned_height] 205
 @200
--Command
+--- FIFO_MXSX --
 @28
-top.fifo_mxsx_tb.inst_fifo_mxsx.bit_index
+top.fifo_mxsx_tb.inst_fifo_mxsx.reset
+top.fifo_mxsx_tb.inst_fifo_mxsx.clk
+@200
+-FIFO Ctrl
+@28
+top.fifo_mxsx_tb.inst_fifo_mxsx.write_enable
 top.fifo_mxsx_tb.inst_fifo_mxsx.write
 top.fifo_mxsx_tb.inst_fifo_mxsx.read_data
-top.fifo_mxsx_tb.inst_fifo_mxsx.write_enable
-top.fifo_mxsx_tb.inst_fifo_mxsx.data_in
-@22
-#{top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[15:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[15] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[14] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[13] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[12] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[11] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[10] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[9] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[8] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[7] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[6] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[5] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[4] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[3] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[2] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[1] top.fifo_mxsx_tb.inst_fifo_mxsx.data_out[0]
 @200
--FIFO_RAM
+-FIFO indexes
 @28
-top.fifo_mxsx_tb.inst_fifo_mxsx.data_write_idx
 top.fifo_mxsx_tb.inst_fifo_mxsx.data_read_idx
-@200
--RAM
 @22
-#{top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][15:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][15] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][14] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][13] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][12] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][11] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][10] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][9] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][8] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][7] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][6] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][5] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][4] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][3] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][2] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][1] top.fifo_mxsx_tb.inst_fifo_mxsx.data[0][0]
-#{top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][15:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][15] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][14] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][13] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][12] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][11] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][10] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][9] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][8] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][7] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][6] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][5] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][4] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][3] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][2] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][1] top.fifo_mxsx_tb.inst_fifo_mxsx.data[1][0]
-#{top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][15:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][15] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][14] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][13] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][12] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][11] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][10] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][9] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][8] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][7] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][6] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][5] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][4] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][3] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][2] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][1] top.fifo_mxsx_tb.inst_fifo_mxsx.data[2][0]
+top.fifo_mxsx_tb.inst_fifo_mxsx.data_write_idx
 @200
--FIFO_DESC
+-IO ports
 @28
-top.fifo_mxsx_tb.inst_fifo_mxsx.desc_write_idx
-top.fifo_mxsx_tb.inst_fifo_mxsx.desc_read_idx
-@200
--Desc
+top.fifo_mxsx_tb.data_in[0]
 @22
-#{top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][15:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][15] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][14] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][13] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][12] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][11] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][10] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][9] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][8] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][7] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][6] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][5] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][4] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][3] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][2] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][1] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[0][0]
-#{top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][15:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][15] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][14] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][13] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][12] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][11] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][10] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][9] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][8] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][7] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][6] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][5] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][4] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][3] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][2] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][1] top.fifo_mxsx_tb.inst_fifo_mxsx.desc[1][0]
+#{top.fifo_mxsx_tb.data_out[15:0]} top.fifo_mxsx_tb.data_out[15] top.fifo_mxsx_tb.data_out[14] top.fifo_mxsx_tb.data_out[13] top.fifo_mxsx_tb.data_out[12] top.fifo_mxsx_tb.data_out[11] top.fifo_mxsx_tb.data_out[10] top.fifo_mxsx_tb.data_out[9] top.fifo_mxsx_tb.data_out[8] top.fifo_mxsx_tb.data_out[7] top.fifo_mxsx_tb.data_out[6] top.fifo_mxsx_tb.data_out[5] top.fifo_mxsx_tb.data_out[4] top.fifo_mxsx_tb.data_out[3] top.fifo_mxsx_tb.data_out[2] top.fifo_mxsx_tb.data_out[1] top.fifo_mxsx_tb.data_out[0]
 @200
--Status
+-
+--- DPRAM --
+-1b input
 @28
-top.fifo_mxsx_tb.inst_fifo_mxsx.is_full
-top.fifo_mxsx_tb.inst_fifo_mxsx.is_empty
+top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.ena
+top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.wea
+@22
+#{top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[13:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[13] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[12] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[11] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[10] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[9] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[8] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[7] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[6] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[5] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[4] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[3] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[2] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[1] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addra[0]
+@28
+top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dia[0]
+@200
+-16b output
+@28
+top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.enb
+top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.web
+@23
+#{top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[9:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[9] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[8] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[7] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[6] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[5] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[4] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[3] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[2] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[1] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[0]
+@22
+#{top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[15:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[15] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[14] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[13] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[12] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[11] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[10] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[9] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[8] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[7] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[6] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[5] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[4] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[3] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[2] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[1] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[0]
 [pattern_trace] 1
 [pattern_trace] 0

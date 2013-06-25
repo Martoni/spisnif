@@ -125,10 +125,10 @@ begin
 	end process;
 
 	-- Data FIFO status signals
-	is_empty <= 	'1' when data_write_idx = data_read_idx else
+	is_empty <= 	'1' when data_write_idx = data_read_idx*16 else
 	'0';
 
-	is_full <= 	'1' when (data_write_idx + 1) mod fifo_size = data_read_idx else
+	is_full <= 	'1' when ((data_write_idx + 1) mod fifo_size) = (data_read_idx*16) else
 	'0';
 
 end architecture fifo_mxsx_1;

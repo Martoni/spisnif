@@ -65,6 +65,9 @@ Architecture fifo_mxsx_1 of fifo_mxsx is
 	signal read_addr : std_logic_vector(9 downto 0);
 	signal write_addr : std_logic_vector(13 downto 0);
 	signal write_ram : std_logic;
+
+	-- Falling edge detection
+	signal write_enable_falling : std_logic := '0';
 begin
 
 	read_addr <= std_logic_vector(to_unsigned(data_read_idx, 10));
@@ -82,7 +85,7 @@ begin
 			addr_16b => read_addr,
 			dout_16b => data_out);
 
-	process(clk, reset)
+	ram_management : process(clk, reset)
 	begin
 		if reset = '1' then
 			data_write_idx <= 0;
@@ -91,11 +94,32 @@ begin
 			if rising_edge(clk) then
 				if write_ram = '1' then
 					data_write_idx <= (data_write_idx + 1) mod (fifo_size*16);
+				elsif write_enable_falling = '1' then -- Place write index on next 16 bit word
+					data_write_idx <= ((data_write_idx / 16) + 1) * 16;
 				end if;
 
 				if read_data = '1' then
 					data_read_idx <= (data_read_idx + 1) mod fifo_size;
 				end if;
+			end if;
+		end if;
+	end process;
+
+	edge_detection : process(clk, reset)
+	variable old_write_enable : std_logic := '0';
+	begin
+		if reset = '1' then
+			write_enable_falling <= '0';
+			old_write_enable := '0';
+		else
+			if rising_edge(clk) then
+				if (write_enable = '0') and (old_write_enable = '1') then
+					write_enable_falling <= '1';
+				else
+					write_enable_falling <= '0';
+				end if;
+
+				old_write_enable := write_enable;
 			end if;
 		end if;
 	end process;

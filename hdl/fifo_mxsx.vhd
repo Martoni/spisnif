@@ -66,14 +66,15 @@ Architecture fifo_mxsx_1 of fifo_mxsx is
 	signal write_addr : std_logic_vector(13 downto 0);
 	signal write_ram : std_logic;
 
-	-- Falling edge detection
+	-- Edge detection
 	signal write_enable_falling : std_logic := '0';
+	signal write_rising : std_logic := '0';
 begin
 
 	read_addr <= std_logic_vector(to_unsigned(data_read_idx, 10));
 	write_addr <= std_logic_vector(to_unsigned(data_write_idx, 14));
 
-	write_ram <= write and write_enable;
+	write_ram <= write_rising and write_enable;
 
 	-- Ram instanciation
 	inst_ram : dual_ports_ram_16b_1b
@@ -107,10 +108,12 @@ begin
 
 	edge_detection : process(clk, reset)
 	variable old_write_enable : std_logic := '0';
+	variable old_write : std_logic := '0';
 	begin
 		if reset = '1' then
 			write_enable_falling <= '0';
 			old_write_enable := '0';
+			old_write := '0';
 		else
 			if rising_edge(clk) then
 				if (write_enable = '0') and (old_write_enable = '1') then
@@ -119,7 +122,14 @@ begin
 					write_enable_falling <= '0';
 				end if;
 
+				if (write = '1') and (old_write = '0') then
+					write_rising <= '1';
+				else
+					write_rising <= '0';
+				end if;
+
 				old_write_enable := write_enable;
+				old_write := write;
 			end if;
 		end if;
 	end process;

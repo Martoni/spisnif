@@ -1,12 +1,12 @@
 [*]
 [*] GTKWave Analyzer v3.3.37 (w)1999-2012 BSI
-[*] Mon Jun 24 21:30:26 2013
+[*] Tue Jun 25 21:15:01 2013
 [*]
 [dumpfile] "/home/kevin/Projets/spisnif/spisnif/testbench/fifo_mxsx_tb/simu/fifo_mxsx_tb.ghw"
-[dumpfile_mtime] "Mon Jun 24 21:29:08 2013"
-[dumpfile_size] 4067
+[dumpfile_mtime] "Tue Jun 25 20:52:13 2013"
+[dumpfile_size] 4425
 [savefile] "/home/kevin/Projets/spisnif/spisnif/testbench/fifo_mxsx_tb/layout.sav"
-[timestart] 0
+[timestart] 467000000
 [size] 1022 747
 [pos] -1 -1
 *-25.331188 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
@@ -31,10 +31,15 @@ top.fifo_mxsx_tb.inst_fifo_mxsx.write_enable
 top.fifo_mxsx_tb.inst_fifo_mxsx.write
 top.fifo_mxsx_tb.inst_fifo_mxsx.read_data
 @200
+-FIFO STATUS
+@28
+top.fifo_mxsx_tb.is_full
+@29
+top.fifo_mxsx_tb.is_empty
+@200
 -FIFO indexes
 @28
 top.fifo_mxsx_tb.inst_fifo_mxsx.data_read_idx
-@22
 top.fifo_mxsx_tb.inst_fifo_mxsx.data_write_idx
 @200
 -IO ports
@@ -58,9 +63,8 @@ top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dia[0]
 @28
 top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.enb
 top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.web
-@23
-#{top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[9:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[9] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[8] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[7] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[6] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[5] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[4] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[3] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[2] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[1] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[0]
 @22
+#{top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[9:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[9] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[8] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[7] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[6] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[5] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[4] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[3] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[2] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[1] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.addrb[0]
 #{top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[15:0]} top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[15] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[14] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[13] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[12] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[11] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[10] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[9] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[8] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[7] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[6] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[5] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[4] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[3] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[2] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[1] top.fifo_mxsx_tb.inst_fifo_mxsx.inst_ram.ramb16_s1_s18_inst.dob[0]
 [pattern_trace] 1
 [pattern_trace] 0

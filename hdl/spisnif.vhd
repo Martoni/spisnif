@@ -107,6 +107,9 @@ Architecture spisnif_1 of spisnif is
 	signal fifo_packet_write : std_logic;
 	signal fifo_packet_in : std_logic_vector(15 downto 0);
 
+	-- bit 0 CPOL
+	-- bit 1 CPHA
+	-- bit 2 CSPOL
 	signal control : std_logic_vector(15 downto 0);
 begin
 
@@ -153,11 +156,24 @@ begin
 	write_enable <= cs xnor control(2);
 	fifo_write <= (sck xnor control(0)) xnor control(1);
 
+	-- Wishbone interface
 	wishbone : process(gls_clk, gls_reset)
 	begin
 		if gls_reset = '1' then
 			control <= (others => '0');
-		else
+			wbs_readdata <= (others => '0');
+		elsif rising_edge(gls_clk) then
+			if wbs_write = '1' and (wbs_strobe = '1' or wbs_cycle = '1')then
+				case wbs_add is
+					when "0000" => control <= wbs_writedata;
+					when others => control <= control;
+				end case;
+			elsif wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
+				case wbs_add is
+					when "0000" => wbs_readdata <= control;
+					when others => wbs_readdata <= (others => '0');
+				end case;
+			end if;
 		end if;
 	end process;
 

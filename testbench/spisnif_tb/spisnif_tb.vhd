@@ -111,6 +111,7 @@ begin
 
     stimulis : process
     begin
+	-- Test with CPHA=0 CPOL=0 CSPOL=0
 	reset <= '1';
 	wbs_add <= (others => '0');
 	wbs_writedata <= (others => '0');
@@ -150,6 +151,111 @@ begin
 	wait for 20 ns; 
 	cs <= '1'; -- end of transfert
 	wait for 40 ns; 
+
+	-- Test with CPHA=1 CPOL=0 CSPOL=0
+	wbs_writedata(0) <= '0';
+	wbs_writedata(1) <= '1';
+	wbs_writedata(2) <= '0';
+	wbs_strobe <= '1';
+	wbs_write <= '1';
+	wait for 2*HALF_PERIODE_IMX_CLK;
+	cs <= '0'; -- Select component
+	-- Bit 1
+	mosi <= '0';
+	miso <= '1';
+	sck <= '1';
+	wait for 20 ns; 
+	sck <= '0'; -- Transmit
+	wait for 20 ns;
+	-- Bit 2
+	sck <= '1';
+	mosi <= '1';
+	miso <= '0';
+	wait for 20 ns; 
+	sck <= '0'; -- Transmit
+	wait for 20 ns;
+	-- Bit 3
+	sck <= '1';
+	mosi <= '1';
+	miso <= '1';
+	wait for 20 ns; 
+	sck <= '0'; -- Transmit
+
+	wait for 20 ns;
+	sck <= '1';
+	wait for 20 ns; 
+	cs <= '1'; -- end of transfert
+	wait for 40 ns;
+
+	-- Test with CPHA=0 CPOL=1 CSPOL=0
+	wbs_writedata(0) <= '1';
+	wbs_writedata(1) <= '0';
+	wbs_writedata(2) <= '0';
+	wbs_strobe <= '1';
+	wbs_write <= '1';
+	wait for 2*HALF_PERIODE_IMX_CLK;
+	cs <= '0'; -- Select component
+	-- Bit 1
+	mosi <= '0';
+	miso <= '1';
+	sck <= '1';
+	wait for 20 ns; 
+	sck <= '0'; -- Transmit
+	wait for 20 ns;
+	-- Bit 2
+	sck <= '1';
+	mosi <= '1';
+	miso <= '0';
+	wait for 20 ns; 
+	sck <= '0'; -- Transmit
+	wait for 20 ns;
+	-- Bit 3
+	sck <= '1';
+	mosi <= '1';
+	miso <= '1';
+	wait for 20 ns; 
+	sck <= '0'; -- Transmit
+
+	wait for 20 ns;
+	sck <= '1';
+	wait for 20 ns; 
+	cs <= '1'; -- end of transfert
+	wait for 40 ns;
+
+	-- Test with CPHA=1 CPOL=1 CSPOL=0
+	wbs_writedata(0) <= '1';
+	wbs_writedata(1) <= '1';
+	wbs_writedata(2) <= '0';
+	wbs_strobe <= '1';
+	wbs_write <= '1';
+	wait for 2*HALF_PERIODE_IMX_CLK;
+	cs <= '0'; -- Select component
+	-- Bit 1
+	mosi <= '0';
+	miso <= '1';
+	sck <= '1';
+	wait for 20 ns; 
+	sck <= '0'; -- Transmit
+	wait for 20 ns;
+	-- Bit 2
+	sck <= '1';
+	mosi <= '1';
+	miso <= '0';
+	wait for 20 ns; 
+	sck <= '0'; -- Transmit
+	wait for 20 ns;
+	-- Bit 3
+	sck <= '1';
+	mosi <= '1';
+	miso <= '1';
+	wait for 20 ns; 
+	sck <= '0'; -- Transmit
+
+	wait for 20 ns;
+	sck <= '1';
+	wait for 20 ns; 
+	cs <= '1'; -- end of transfert
+	wait for 40 ns;
 
         assert false report "*** End of test ***" severity error;
     end process stimulis;

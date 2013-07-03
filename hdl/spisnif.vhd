@@ -111,6 +111,10 @@ Architecture spisnif_1 of spisnif is
 	-- bit 1 CPHA
 	-- bit 2 CSPOL
 	signal control : std_logic_vector(15 downto 0);
+
+	signal packet_count : integer range 0 to 2**16-1 := 0;
+
+	signal fifo_write_rising : std_logic := '0';
 begin
 
 	fifo_mosi_inst : fifo_mxsx
@@ -151,10 +155,11 @@ begin
 		db_write => fifo_packet_write,
 		db_data => fifo_packet_in,
 		pf_full => packet_full,
-		pf_init => '0'); -- TODO
+		pf_init => gls_reset); -- TODO
 
 	write_enable <= cs xnor control(2);
 	fifo_write <= (sck xnor control(0)) xnor control(1);
+	fifo_packet_in <= std_logic_vector(to_unsigned(packet_count, 16));
 
 	-- Wishbone interface
 	wishbone : process(gls_clk, gls_reset)
@@ -168,11 +173,77 @@ begin
 					when "0000" => control <= wbs_writedata;
 					when others => control <= control;
 				end case;
+				fifo_mosi_read <= '0';
+				fifo_miso_read <= '0';
+				fifo_packet_read <= '0';
 			elsif wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
 				case wbs_add is
-					when "0000" => wbs_readdata <= control;
+					when "0000" => 	wbs_readdata <= control;
+					when "0001" =>	wbs_readdata <= fifo_mosi_out;
+							fifo_mosi_read <= '1';
+							fifo_miso_read <= '0';
+							fifo_packet_read <= '0';
+					when "0010" =>	wbs_readdata <= fifo_miso_out;
+							fifo_miso_read <= '1';
+							fifo_mosi_read <= '0';
+							fifo_packet_read <= '0';
+					when "0011" =>	wbs_readdata <= fifo_packet_out;
+							fifo_packet_read <= '1';
+							fifo_mosi_read <= '0';
+							fifo_miso_read <= '0';
 					when others => wbs_readdata <= (others => '0');
 				end case;
+			else
+				fifo_mosi_read <= '0';
+				fifo_miso_read <= '0';
+				fifo_packet_read <= '0';
+			end if;
+		end if;
+	end process;
+
+	write_enable_falling_edge : process(gls_clk, gls_reset)
+		variable write_enable_old : std_logic := '0';
+	begin
+		if gls_reset = '1' then
+			write_enable_old := '0';
+		elsif rising_edge(gls_clk) then
+
+			if (write_enable_old = '1') and (write_enable = '0') then
+				fifo_packet_write <= '1';
+			else
+				fifo_packet_write <= '0';
+			end if;
+
+			write_enable_old := write_enable;
+		end if;
+	end process;
+
+	fifo_write_rising_edge : process(gls_clk, gls_reset)
+		variable fifo_write_old : std_logic := '0';
+	begin
+		if gls_reset = '1' then
+			fifo_write_old := '0';
+			fifo_write_rising <= '0';
+		elsif rising_edge(gls_clk) then
+			if (fifo_write_old = '0') and (fifo_write = '1') then
+				fifo_write_rising <= '1';
+			else
+				fifo_write_rising <= '0';
+			end if;
+
+			fifo_write_old := fifo_write;
+		end if;
+	end process;
+
+	packet_count_proc : process(gls_clk, gls_reset)
+	begin
+		if gls_reset = '1' then
+			packet_count <= 0;
+		elsif rising_edge(gls_clk) then
+			if fifo_packet_write = '1' then
+				packet_count <= 0;
+			elsif fifo_write_rising = '1' then
+				packet_count <= (packet_count + 1) mod 2**16;
 			end if;
 		end if;
 	end process;

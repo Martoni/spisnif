@@ -1,24 +1,23 @@
 [*]
 [*] GTKWave Analyzer v3.3.37 (w)1999-2012 BSI
-[*] Thu Jun 27 22:04:35 2013
+[*] Wed Jul  3 19:55:52 2013
 [*]
 [dumpfile] "/home/kevin/Projets/spisnif/spisnif/testbench/spisnif_tb/simu/spisnif_tb.ghw"
-[dumpfile_mtime] "Thu Jun 27 21:59:29 2013"
-[dumpfile_size] 5604
+[dumpfile_mtime] "Wed Jul  3 19:36:42 2013"
+[dumpfile_size] 191029
 [savefile] "/home/kevin/Projets/spisnif/spisnif/testbench/spisnif_tb/layout.sav"
-[timestart] 0
+[timestart] 32600000
 [size] 1022 747
 [pos] -1 -1
-*-26.189192 70000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-24.403120 840000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.spisnif_tb.
 [treeopen] top.spisnif_tb.inst_spisnif.
 [treeopen] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.
 [treeopen] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.
-[treeopen] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.
 [treeopen] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.
 [treeopen] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.
-[sst_width] 286
+[sst_width] 217
 [signals_width] 190
 [sst_expanded] 1
 [sst_vpaned_height] 205
@@ -40,6 +39,8 @@ top.spisnif_tb.inst_spisnif.fifo_miso_inst.write_enable
 top.spisnif_tb.inst_spisnif.fifo_miso_inst.write
 top.spisnif_tb.inst_spisnif.fifo_miso_inst.write_rising
 top.spisnif_tb.inst_spisnif.fifo_miso_inst.write_enable_falling
+top.spisnif_tb.inst_spisnif.fifo_miso_inst.data_read_idx
+top.spisnif_tb.inst_spisnif.fifo_miso_inst.read_data_falling
 @22
 #{top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[15:0]} top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[15] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[14] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[13] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[12] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[11] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[10] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[9] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[8] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[7] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[6] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[5] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[4] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[3] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[2] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[1] top.spisnif_tb.inst_spisnif.fifo_miso_inst.inst_ram.ramb16_s1_s18_inst.dob[0]
 @200
@@ -50,7 +51,28 @@ top.spisnif_tb.inst_spisnif.fifo_mosi_inst.write_enable
 top.spisnif_tb.inst_spisnif.fifo_mosi_inst.write
 top.spisnif_tb.inst_spisnif.fifo_mosi_inst.write_rising
 top.spisnif_tb.inst_spisnif.fifo_mosi_inst.write_enable_falling
-@23
+top.spisnif_tb.inst_spisnif.fifo_mosi_inst.data_read_idx
+top.spisnif_tb.inst_spisnif.fifo_mosi_inst.read_data_falling
+@22
 #{top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[15:0]} top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[15] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[14] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[13] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[12] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[11] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[10] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[9] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[8] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[7] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[6] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[5] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[4] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[3] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[2] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[1] top.spisnif_tb.inst_spisnif.fifo_mosi_inst.inst_ram.ramb16_s1_s18_inst.dob[0]
+@200
+-FIFO_Packet
+@22
+#{top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[15:0]} top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[15] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[14] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[13] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[12] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[11] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[10] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[9] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[8] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[7] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[6] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[5] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[4] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[3] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[2] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[1] top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_data[0]
+@28
+top.spisnif_tb.inst_spisnif.fifo_packet_inst.db_write
+#{top.spisnif_tb.inst_spisnif.fifo_packet_inst.rams_write_en[2:0]} top.spisnif_tb.inst_spisnif.fifo_packet_inst.rams_write_en[2] top.spisnif_tb.inst_spisnif.fifo_packet_inst.rams_write_en[1] top.spisnif_tb.inst_spisnif.fifo_packet_inst.rams_write_en[0]
+@200
+-Wishbone signals
+@22
+#{top.spisnif_tb.wbs_add[3:0]} top.spisnif_tb.wbs_add[3] top.spisnif_tb.wbs_add[2] top.spisnif_tb.wbs_add[1] top.spisnif_tb.wbs_add[0]
+#{top.spisnif_tb.wbs_writedata[15:0]} top.spisnif_tb.wbs_writedata[15] top.spisnif_tb.wbs_writedata[14] top.spisnif_tb.wbs_writedata[13] top.spisnif_tb.wbs_writedata[12] top.spisnif_tb.wbs_writedata[11] top.spisnif_tb.wbs_writedata[10] top.spisnif_tb.wbs_writedata[9] top.spisnif_tb.wbs_writedata[8] top.spisnif_tb.wbs_writedata[7] top.spisnif_tb.wbs_writedata[6] top.spisnif_tb.wbs_writedata[5] top.spisnif_tb.wbs_writedata[4] top.spisnif_tb.wbs_writedata[3] top.spisnif_tb.wbs_writedata[2] top.spisnif_tb.wbs_writedata[1] top.spisnif_tb.wbs_writedata[0]
+@23
+#{top.spisnif_tb.inst_spisnif.wbs_readdata[15:0]} top.spisnif_tb.inst_spisnif.wbs_readdata[15] top.spisnif_tb.inst_spisnif.wbs_readdata[14] top.spisnif_tb.inst_spisnif.wbs_readdata[13] top.spisnif_tb.inst_spisnif.wbs_readdata[12] top.spisnif_tb.inst_spisnif.wbs_readdata[11] top.spisnif_tb.inst_spisnif.wbs_readdata[10] top.spisnif_tb.inst_spisnif.wbs_readdata[9] top.spisnif_tb.inst_spisnif.wbs_readdata[8] top.spisnif_tb.inst_spisnif.wbs_readdata[7] top.spisnif_tb.inst_spisnif.wbs_readdata[6] top.spisnif_tb.inst_spisnif.wbs_readdata[5] top.spisnif_tb.inst_spisnif.wbs_readdata[4] top.spisnif_tb.inst_spisnif.wbs_readdata[3] top.spisnif_tb.inst_spisnif.wbs_readdata[2] top.spisnif_tb.inst_spisnif.wbs_readdata[1] top.spisnif_tb.inst_spisnif.wbs_readdata[0]
+@22
+#{top.spisnif_tb.wbs_readdata[15:0]} top.spisnif_tb.wbs_readdata[15] top.spisnif_tb.wbs_readdata[14] top.spisnif_tb.wbs_readdata[13] top.spisnif_tb.wbs_readdata[12] top.spisnif_tb.wbs_readdata[11] top.spisnif_tb.wbs_readdata[10] top.spisnif_tb.wbs_readdata[9] top.spisnif_tb.wbs_readdata[8] top.spisnif_tb.wbs_readdata[7] top.spisnif_tb.wbs_readdata[6] top.spisnif_tb.wbs_readdata[5] top.spisnif_tb.wbs_readdata[4] top.spisnif_tb.wbs_readdata[3] top.spisnif_tb.wbs_readdata[2] top.spisnif_tb.wbs_readdata[1] top.spisnif_tb.wbs_readdata[0]
+@28
+top.spisnif_tb.wbs_write
+top.spisnif_tb.wbs_strobe
 [pattern_trace] 1
 [pattern_trace] 0

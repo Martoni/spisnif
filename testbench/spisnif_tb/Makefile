@@ -9,7 +9,9 @@ PROJECT=spisnif
 TESTBENCH_FILE=$(PROJECT)_tb.vhd
 FILES=../../hdl/spisnif.vhd
 FILES+=../../hdl/fifo_mxsx.vhd
+FILES+=../../hdl/fifo_packet.vhd
 FILES+=../../hdl/dual_ports_ram_16b_1b.vhd
+FILES+=../../hdl/xilinx_dual_port_ram.vhd
 
 # testbench
 SIMTOP =$(PROJECT)_tb

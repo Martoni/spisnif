@@ -159,6 +159,8 @@ begin
 	wbs_strobe <= '1';
 	wbs_write <= '1';
 	wait for 2*HALF_PERIODE_IMX_CLK;
+	wbs_strobe <= '0';
+	wait for 2*HALF_PERIODE_IMX_CLK;
 	cs <= '0'; -- Select component
 	-- Bit 1
 	mosi <= '0';
@@ -193,6 +195,8 @@ begin
 	wbs_writedata(2) <= '0';
 	wbs_strobe <= '1';
 	wbs_write <= '1';
+	wait for 2*HALF_PERIODE_IMX_CLK;
+	wbs_strobe <= '0';
 	wait for 2*HALF_PERIODE_IMX_CLK;
 	cs <= '0'; -- Select component
 	-- Bit 1
@@ -229,6 +233,8 @@ begin
 	wbs_strobe <= '1';
 	wbs_write <= '1';
 	wait for 2*HALF_PERIODE_IMX_CLK;
+	wbs_strobe <= '0';
+	wait for 2*HALF_PERIODE_IMX_CLK;
 	cs <= '0'; -- Select component
 	-- Bit 1
 	mosi <= '0';
@@ -256,6 +262,30 @@ begin
 	wait for 20 ns; 
 	cs <= '1'; -- end of transfert
 	wait for 40 ns;
+
+	-- Read data on mosi fifo
+	wbs_add <= "0001";
+	wbs_strobe <= '1';
+	wbs_write <= '0';
+	wait for 2*HALF_PERIODE_IMX_CLK;
+	wbs_strobe <= '0';
+	wait for 2*HALF_PERIODE_IMX_CLK;
+
+	-- Read data on miso fifo
+	wbs_add <= "0010";
+	wbs_strobe <= '1';
+	wbs_write <= '0';
+	wait for 2*HALF_PERIODE_IMX_CLK;
+	wbs_strobe <= '0';
+	wait for 2*HALF_PERIODE_IMX_CLK;
+
+	-- Read data on packets fifo
+	wbs_add <= "0011";
+	wbs_strobe <= '1';
+	wbs_write <= '0';
+	wait for 2*HALF_PERIODE_IMX_CLK;
+	wbs_strobe <= '0';
+	wait for 2*HALF_PERIODE_IMX_CLK;
 
         assert false report "*** End of test ***" severity error;
     end process stimulis;

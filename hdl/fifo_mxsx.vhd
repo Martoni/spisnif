@@ -69,6 +69,7 @@ Architecture fifo_mxsx_1 of fifo_mxsx is
 	-- Edge detection
 	signal write_enable_falling : std_logic := '0';
 	signal write_rising : std_logic := '0';
+	signal read_data_falling : std_logic := '0';
 begin
 
 	read_addr <= std_logic_vector(to_unsigned(data_read_idx, 10));
@@ -99,7 +100,7 @@ begin
 					data_write_idx <= ((data_write_idx / 16) + 1) * 16;
 				end if;
 
-				if read_data = '1' then
+				if read_data_falling = '1' then
 					data_read_idx <= (data_read_idx + 1) mod fifo_size;
 				end if;
 			end if;
@@ -109,11 +110,16 @@ begin
 	edge_detection : process(clk, reset)
 	variable old_write_enable : std_logic := '0';
 	variable old_write : std_logic := '0';
+	variable old_read_data : std_logic := '0';
 	begin
 		if reset = '1' then
 			write_enable_falling <= '0';
+			write_rising <= '0';
+			read_data_falling <= '0';
+
 			old_write_enable := '0';
 			old_write := '0';
+			old_read_data := '0';
 		else
 			if rising_edge(clk) then
 				if (write_enable = '0') and (old_write_enable = '1') then
@@ -128,8 +134,15 @@ begin
 					write_rising <= '0';
 				end if;
 
+				if (read_data = '0') and (old_read_data = '1') then
+					read_data_falling <= '1';
+				else
+					read_data_falling <= '0';
+				end if;
+
 				old_write_enable := write_enable;
 				old_write := write;
+				old_read_data := read_data;
 			end if;
 		end if;
 	end process;

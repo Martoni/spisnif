@@ -5,7 +5,7 @@
 --
 -- File          : spisnif.vhd
 -- Created on    : 20/09/2012
--- Author        : Fabien Marteau <fabien.marteau@armadeus.com>
+-- Author        : Kevin Joly <joly.kevin25@gmail.com
 --
 --*********************************************************************
 

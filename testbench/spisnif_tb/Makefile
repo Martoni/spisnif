@@ -12,13 +12,17 @@ FILES+=../../hdl/fifo_mxsx.vhd
 FILES+=../../hdl/fifo_packet.vhd
 FILES+=../../hdl/dual_ports_ram_16b_1b.vhd
 FILES+=../../hdl/xilinx_dual_port_ram.vhd
+FILES+= wishbone_test_pkg.vhd
+FILES+= spigen_pkg.vhd 
 
 # testbench
 SIMTOP =$(PROJECT)_tb
 # Simu break condition
 GHDL_SIM_OPT    = --assert-level=error
 #GHDL_SIM_OPT    = --stop-time=500ns
-XILINX=/opt/Xilinx/13.2/ISE_DS/ISE/
+
+# adding this at the end of your .bashrc:
+# export XILINX=/home/fabien/myapp/ISE/14.6/ISE_DS/ISE/
 
 ##############################
 # GHDL options

@@ -27,6 +27,9 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
 
+use work.wishbone_test_pkg.all;
+use work.spigen_pkg.all;
+
 Entity spisnif_tb is
 end entity;
 
@@ -34,6 +37,16 @@ Architecture spisnif_tb_1 of spisnif_tb is
 
     CONSTANT HALF_PERIODE_IMX_CLK  : time :=  5 ns;  -- Half clock period of imx weim clk
     CONSTANT FIFO_BRAM_NUM : natural := 4;
+
+    -- registers mapping
+    CONSTANT REG_CONTROL     : std_logic_vector(2 downto 0) := "000";
+    CONSTANT REG_FIFO_MOSI   : std_logic_vector(2 downto 0) := "001";
+    CONSTANT REG_FIFO_MISO   : std_logic_vector(2 downto 0) := "010";
+    CONSTANT REG_FIFO_PACKET : std_logic_vector(2 downto 0) := "011";
+    CONSTANT REG_STATUS      : std_logic_vector(2 downto 0) := "100";
+--  CONSTANT REG_            : std_logic_vector(2 downto 0) := "101";
+--  CONSTANT REG_            : std_logic_vector(2 downto 0) := "110";
+    CONSTANT REG_ID          : std_logic_vector(2 downto 0) := "111";
 
     signal imx_clk : std_logic;
     signal reset : std_logic;
@@ -75,7 +88,13 @@ component spisnif
         cs   : in std_logic);
 end component;
 
+    signal value : std_logic_vector(15 downto 0);
+    signal cspol : std_logic;
+    signal cpha  : std_logic;
+    signal cpol  : std_logic;
+
 begin
+
 
 	-- fifo connections
 	inst_spisnif : spisnif
@@ -109,184 +128,52 @@ begin
     end process time_count;
 
 
-    stimulis : process
+    -- Stimulis for SPI bus
+    spi_stimulis : process
     begin
 	    -- Test with CPHA=0 CPOL=0 CSPOL=0
+	    sck <= '0';
+	    mosi <= '0';
+	    miso <= '0';
+	    cs <= '1';
+        wait for 10 us;
+        spi_send_frame(mosi => "101101", miso => "000111",
+                       clock_per => 33 us,
+                       cpol => '0', cpha => '0', cspol => '0',
+                       spi_clock => sck,
+                       spi_mosi => mosi,
+                       spi_miso => miso,
+                       spi_cs => cs);
+
+        wait for 1000 ms; -- do not loop
+    end process;
+
+    -- main stimulis process
+    stimulis : process
+    begin
 	    reset <= '1';
 	    wbs_add <= (others => '0');
 	    wbs_writedata <= (others => '0');
 	    wbs_strobe <= '0';
 	    wbs_cycle <= '0';
 	    wbs_write <= '0';
-	    sck <= '0';
-	    mosi <= '0';
-	    miso <= '0';
-	    cs <= '1';
-	    wait for 20 ns;
-	    reset <= '0';
-	    wait for 20 ns;
-	    cs <= '0'; -- Select component
-	    -- Bit 1
-	    mosi <= '0';
-	    miso <= '1';
-	    wait for 20 ns;
-	    sck <= '1'; -- Transmit
-	    wait for 20 ns;
-	    -- Bit 2
-	    sck <= '0';
-	    mosi <= '1';
-	    miso <= '0';
-	    wait for 20 ns;
-	    sck <= '1'; -- Transmit
-	    wait for 20 ns;
-	    -- Bit 3
-	    sck <= '0';
-	    mosi <= '1';
-	    miso <= '1';
-	    wait for 20 ns;
-	    sck <= '1'; -- Transmit
+        wait for 1 us;
+        reset <= '0';
 
-	    wait for 20 ns;
-	    sck <= '0';
-	    wait for 20 ns;
-	    cs <= '1'; -- end of transfert
-	    wait for 40 ns;
+        -- read component identifiant
+        wishbone_read('0'&REG_ID,  value,
+                      imx_clk, wbs_strobe, wbs_cycle,
+                      wbs_write, wbs_ack, wbs_add(2 downto 0),
+                      wbs_writedata, wbs_readdata, 5);
+        report "Identifiant read:"&integer'image(to_integer(unsigned(value)))&".";
 
-	    -- Test with CPHA=1 CPOL=0 CSPOL=0
-	    wbs_writedata(0) <= '0';
-	    wbs_writedata(1) <= '1';
-	    wbs_writedata(2) <= '0';
-	    wbs_strobe <= '1';
-	    wbs_write <= '1';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-	    wbs_strobe <= '0';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-	    cs <= '0'; -- Select component
-	    -- Bit 1
-	    mosi <= '0';
-	    miso <= '1';
-	    sck <= '1';
-	    wait for 20 ns;
-	    sck <= '0'; -- Transmit
-	    wait for 20 ns;
-	    -- Bit 2
-	    sck <= '1';
-	    mosi <= '1';
-	    miso <= '0';
-	    wait for 20 ns;
-	    sck <= '0'; -- Transmit
-	    wait for 20 ns;
-	    -- Bit 3
-	    sck <= '1';
-	    mosi <= '1';
-	    miso <= '1';
-	    wait for 20 ns;
-	    sck <= '0'; -- Transmit
+        -- write configuration CSPOL=0, CPOL=0, CPHA=0
+        wishbone_write( '0'&REG_CONTROL, x"0000",
+                        imx_clk, wbs_strobe, wbs_cycle,
+                        wbs_write, wbs_ack, wbs_add(2 downto 0),
+                        wbs_writedata, wbs_readdata, 5);
 
-	    wait for 20 ns;
-	    sck <= '1';
-	    wait for 20 ns;
-	    cs <= '1'; -- end of transfert
-	    wait for 40 ns;
-
-	    -- Test with CPHA=0 CPOL=1 CSPOL=0
-	    wbs_writedata(0) <= '1';
-	    wbs_writedata(1) <= '0';
-	    wbs_writedata(2) <= '0';
-	    wbs_strobe <= '1';
-	    wbs_write <= '1';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-	    wbs_strobe <= '0';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-	    cs <= '0'; -- Select component
-	    -- Bit 1
-	    mosi <= '0';
-	    miso <= '1';
-	    sck <= '1';
-	    wait for 20 ns;
-	    sck <= '0'; -- Transmit
-	    wait for 20 ns;
-	    -- Bit 2
-	    sck <= '1';
-	    mosi <= '1';
-	    miso <= '0';
-	    wait for 20 ns;
-	    sck <= '0'; -- Transmit
-	    wait for 20 ns;
-	    -- Bit 3
-	    sck <= '1';
-	    mosi <= '1';
-	    miso <= '1';
-	    wait for 20 ns;
-	    sck <= '0'; -- Transmit
-
-	    wait for 20 ns;
-	    sck <= '1';
-	    wait for 20 ns;
-	    cs <= '1'; -- end of transfert
-	    wait for 40 ns;
-
-	    -- Test with CPHA=1 CPOL=1 CSPOL=0
-	    wbs_writedata(0) <= '1';
-	    wbs_writedata(1) <= '1';
-	    wbs_writedata(2) <= '0';
-	    wbs_strobe <= '1';
-	    wbs_write <= '1';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-	    wbs_strobe <= '0';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-	    cs <= '0'; -- Select component
-	    -- Bit 1
-	    mosi <= '0';
-	    miso <= '1';
-	    sck <= '1';
-	    wait for 20 ns;
-	    sck <= '0'; -- Transmit
-	    wait for 20 ns;
-	    -- Bit 2
-	    sck <= '1';
-	    mosi <= '1';
-	    miso <= '0';
-	    wait for 20 ns;
-	    sck <= '0'; -- Transmit
-	    wait for 20 ns;
-	    -- Bit 3
-	    sck <= '1';
-	    mosi <= '1';
-	    miso <= '1';
-	    wait for 20 ns;
-	    sck <= '0'; -- Transmit
-
-	    wait for 20 ns;
-	    sck <= '1';
-	    wait for 20 ns;
-	    cs <= '1'; -- end of transfert
-	    wait for 40 ns;
-
-	    -- Read data on mosi fifo
-	    wbs_add <= "0001";
-	    wbs_strobe <= '1';
-	    wbs_write <= '0';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-	    wbs_strobe <= '0';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-
-	    -- Read data on miso fifo
-	    wbs_add <= "0010";
-	    wbs_strobe <= '1';
-	    wbs_write <= '0';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-	    wbs_strobe <= '0';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-
-	    -- Read data on packets fifo
-	    wbs_add <= "0011";
-	    wbs_strobe <= '1';
-	    wbs_write <= '0';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-	    wbs_strobe <= '0';
-	    wait for 2*HALF_PERIODE_IMX_CLK;
-
+        wait for 500 us;
         assert false report "*** End of test ***" severity error;
     end process stimulis;
 

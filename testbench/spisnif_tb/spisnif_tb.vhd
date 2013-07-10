@@ -161,14 +161,14 @@ begin
         reset <= '0';
 
         -- read component identifiant
-        wishbone_read('0'&REG_ID,  value,
+        wishbone_read(REG_ID,  value,
                       imx_clk, wbs_strobe, wbs_cycle,
                       wbs_write, wbs_ack, wbs_add(2 downto 0),
                       wbs_writedata, wbs_readdata, 5);
         report "Identifiant read:"&integer'image(to_integer(unsigned(value)))&".";
 
         -- write configuration CSPOL=0, CPOL=0, CPHA=0
-        wishbone_write( '0'&REG_CONTROL, x"0000",
+        wishbone_write( REG_CONTROL, x"0000",
                         imx_clk, wbs_strobe, wbs_cycle,
                         wbs_write, wbs_ack, wbs_add(2 downto 0),
                         wbs_writedata, wbs_readdata, 5);

@@ -53,7 +53,7 @@ package body spigen_pkg is
                 signal spi_miso  : out std_logic;
                 signal spi_cs    : out std_logic) is
     begin
-        assert (mosi'right = miso'right ) and (mosi'left = miso'left)
+        assert (mosi'high = miso'high ) and (mosi'low = miso'low)
             report "ERROR: mosi and miso must have the same size" severity error;
 
         spi_cs <= cspol; 

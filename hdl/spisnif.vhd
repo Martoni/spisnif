@@ -115,8 +115,13 @@ Architecture spisnif_1 of spisnif is
 	signal packet_count : integer range 0 to 2**16-1 := 0;
 
 	signal fifo_write_rising : std_logic := '0';
+
+	-- Sampled SPI signals
+	signal mosi_data_in : std_logic := '0';
+	signal miso_data_in : std_logic := '0';
 begin
 
+	-- MOSI fifo instance
 	fifo_mosi_inst : fifo_mxsx
 	generic map(fifo_size => fifo_mosi_size)
 	port map(
@@ -124,12 +129,13 @@ begin
 		reset => gls_reset,
 		write => fifo_write,
 		read_data => fifo_mosi_read,
-		data_in(0) => mosi,
+		data_in(0) => mosi_data_in,
 		write_enable => write_enable,
 		is_empty => fifo_mosi_empty,
 		is_full => fifo_mosi_full,
 		data_out => fifo_mosi_out);
 
+	-- MISO fifo instance
 	fifo_miso_inst : fifo_mxsx
 	generic map(fifo_size => fifo_miso_size)
 	port map(
@@ -137,12 +143,13 @@ begin
 		reset => gls_reset,
 		write => fifo_write,
 		read_data => fifo_miso_read,
-		data_in(0) => miso,
+		data_in(0) => miso_data_in,
 		write_enable => write_enable,
 		is_empty => fifo_miso_empty,
 		is_full => fifo_miso_full,
 		data_out => fifo_miso_out);
 
+	-- Packet fifo instance
 	fifo_packet_inst : fifo_packet
 	generic map(	ram_num => fifo_packet_ram_num,
 			ram_size => fifo_packet_ram_size)
@@ -157,9 +164,22 @@ begin
 		pf_full => packet_full,
 		pf_init => gls_reset); -- TODO
 
-	write_enable <= cs xnor control(2);
-	fifo_write <= (sck xnor control(0)) xnor control(1);
-	fifo_packet_in <= std_logic_vector(to_unsigned(packet_count, 16));
+	-- Sampling the SPI signals to avoid metastability
+	spi_sampling : process(gls_clk, gls_reset)
+	begin
+		if gls_reset = '1' then
+			write_enable <= '0';
+			fifo_write <= '0';
+			mosi_data_in <= '0';
+			miso_data_in <= '0';
+		elsif rising_edge(gls_clk) then
+			write_enable <= cs xnor control(2);
+			fifo_write <= (sck xnor control(0)) xnor control(1);
+			mosi_data_in <= mosi;
+			miso_data_in <= miso;
+		end if;
+	end process;
+
 
 	-- Wishbone interface
 	wishbone : process(gls_clk, gls_reset)
@@ -235,6 +255,7 @@ begin
 		end if;
 	end process;
 
+	-- Counting number of received SPI packets
 	packet_count_proc : process(gls_clk, gls_reset)
 	begin
 		if gls_reset = '1' then
@@ -247,5 +268,7 @@ begin
 			end if;
 		end if;
 	end process;
+
+	fifo_packet_in <= std_logic_vector(to_unsigned(packet_count, 16));
 
 end architecture spisnif_1;

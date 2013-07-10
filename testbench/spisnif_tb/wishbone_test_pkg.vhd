@@ -7,7 +7,6 @@ package wishbone_test_pkg is
     CONSTANT CLOCK_PERIOD : time := 7.5188 ns;
     CONSTANT WE3 : time := 2.25 ns;
     CONSTANT WE4 : time := 2.25 ns;
-    CONSTANT ZERO : std_logic_vector := x"0000000000000000";
 
     -- write procedures
     procedure wishbone_write(

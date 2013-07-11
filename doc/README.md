@@ -22,12 +22,77 @@ spisnif is composed of 8 16 bits register :
 
 ### registers descriptions ###
 
-+ **CONTROL** : Control register
+#### CONTROL ####
 
-| 15 downto 4 |  3   |        2     |           1       |   0   |
-|:-----------:|:----:|:------------:|:-----------------:|:-----:|
-|    void     | busy | start/stop_n | RAM pointer reset | Reset |
+| 15    | 14      | 13 | 12 | 11 |  10 downto  0   |
+|:-----:|:-------:|:--:|:--:|:--:|:---------------:|
+| reset | irq_ack |    |    |    | irq_pnum_trig   |
+|   W   |   R/W   |  0 | 0  | 0  |      R/W        |
 
+- **reset**: reset all fifos by writing '1'.
+- **irq_ack**: acknowledge interrupt.
+- **irq_pnum_trig**: Packets number to trigger interrution. 0 value disable interrupt
+
+#### FIFO_PACKET ####
+
+| 15  downto  0 |
+|:-------------:|
+| packet_desc   |
+|      R        |
+
+- **packet_desc**: bits number under the packet.
+
+#### FIFO_MOSI ####
+
+| 15  downto  0 |
+|:-------------:|
+|  mosi_value   |
+|      R        |
+
+- **mosi_value**: bit vector of mosi packet.
+
+#### FIFO_MISO ####
+
+| 15  downto  0 |
+|:-------------:|
+|  miso_value   |
+|      R        |
+
+- **miso_value**: bit vector of miso packet.
+
+#### STATUS ####
+
+| 15         |     14    |        13      | 12 | 11 |  10 downto  0   |
+|:----------:|:---------:|:--------------:|:--:|:--:|:---------------:|
+| fifo_empty | fifo_full | fifo_mxsx_full |    |    |   packet_num    |
+|    R       |     R     |       R        |  0 | 0  |       R         |
+
+- **fifo_empty**: fifo_packet empty flag
+- **fifo_full**: fifo_packet full flag
+- **fifo_mxsx_full**: fifo_mxsx full flax
+- **packet_num**: packets number under fifo.
+
+#### CONFIG ####
+
+| 15  dowto 3 |   2   |   1  |   0  |
+|:-----------:|:-----:|:----:|:----:|
+|             | CSPOL | CPHA | CPOL |
+|      0      |  R/W  |  R/W |  R/W |
+
+- **CPOL**: sck polarity (cf linux kernel documentation Documentation/spi/spi-summary)
+- **CPHA**: sck phase (cf linux kernel documentation Documentation/spi/spi-summary)
+- **CSPOL**: chip select polarity:
+	- '0': chip select active low
+	- '1': chip select active high
+
+#### ID ####
+
+| 15  downto  0 |
+|:-------------:|
+|      id       |
+|      R        |
+
+- **id**: component identifiant number.
 
 ARMadeus linux driver
 ---------------------

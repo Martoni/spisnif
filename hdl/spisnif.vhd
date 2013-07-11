@@ -56,7 +56,7 @@ Architecture spisnif_1 of spisnif is
 		reset : in std_logic;
 		write : in std_logic;
 		read_data : in std_logic;
-		data_in : in std_logic_vector(0 downto 0);
+		data_in : in std_logic;
 		write_enable : in std_logic;
 		is_empty : out std_logic;
 		is_full : out std_logic;
@@ -114,12 +114,15 @@ Architecture spisnif_1 of spisnif is
 
 	signal packet_count : integer range 0 to 2**16-1 := 0;
 
-	signal fifo_write_rising : std_logic := '0';
-
 	-- Sampled SPI signals
-	signal mosi_data_in : std_logic := '0';
-	signal miso_data_in : std_logic := '0';
+	signal mosi_tmp, mosi_sync : std_logic := '0';
+	signal miso_tmp, miso_sync : std_logic := '0';
+	signal cs_tmp, cs_sync : std_logic := '0';
+	signal sck_tmp, sck_sync : std_logic := '0';
 begin
+
+	write_enable <= cs_sync xnor control(2);
+	fifo_write <= (sck_sync xnor control(0)) xnor control(1);
 
 	-- MOSI fifo instance
 	fifo_mosi_inst : fifo_mxsx
@@ -129,7 +132,7 @@ begin
 		reset => gls_reset,
 		write => fifo_write,
 		read_data => fifo_mosi_read,
-		data_in(0) => mosi_data_in,
+		data_in => mosi_sync,
 		write_enable => write_enable,
 		is_empty => fifo_mosi_empty,
 		is_full => fifo_mosi_full,
@@ -143,7 +146,7 @@ begin
 		reset => gls_reset,
 		write => fifo_write,
 		read_data => fifo_miso_read,
-		data_in(0) => miso_data_in,
+		data_in => miso_sync,
 		write_enable => write_enable,
 		is_empty => fifo_miso_empty,
 		is_full => fifo_miso_full,
@@ -168,20 +171,72 @@ begin
 	spi_sampling : process(gls_clk, gls_reset)
 	begin
 		if gls_reset = '1' then
-			write_enable <= '0';
-			fifo_write <= '0';
-			mosi_data_in <= '0';
-			miso_data_in <= '0';
+			-- Inactive state of CS is '1' in SPI mode 0
+			-- Others signals is '0'
+			mosi_tmp <= '0';
+			miso_tmp <= '0';
+			sck_tmp <= '0';
+			cs_tmp <= '1';
+			mosi_sync <= '0';
+			miso_sync <= '0';
+			sck_sync <= '0';
+			cs_sync <= '1';
 		elsif rising_edge(gls_clk) then
-			write_enable <= cs xnor control(2);
-			fifo_write <= (sck xnor control(0)) xnor control(1);
-			mosi_data_in <= mosi;
-			miso_data_in <= miso;
+			mosi_tmp <= mosi;
+			mosi_sync <= mosi_tmp;
+			miso_tmp <= miso;
+			miso_sync <= miso_tmp;
+			sck_tmp <= sck;
+			sck_sync <= sck_tmp;
+			cs_tmp <= cs;
+			cs_sync <= cs_tmp;
 		end if;
 	end process;
 
 
+	-- FIFO packet write management
+	write_fifo_packet_management : process(gls_clk, gls_reset)
+		variable write_enable_old : std_logic := '0';
+	begin
+		if gls_reset = '1' then
+			fifo_packet_in <= (others => '0');
+			write_enable_old := '0';
+		elsif rising_edge(gls_clk) then
+
+			if (write_enable_old = '1') and (write_enable = '0') then
+				fifo_packet_write <= '1';
+				fifo_packet_in <= std_logic_vector(to_unsigned(packet_count, 16));
+			else
+				fifo_packet_write <= '0';
+			end if;
+
+			write_enable_old := write_enable;
+		end if;
+	end process;
+
+	-- Count number of received SPI packets
+	-- Increment on fifo_write rising edge
+	-- reset when a write to fifo_packet is performed
+	packet_count_proc : process(gls_clk, gls_reset)
+		variable fifo_write_old : std_logic := '0';
+	begin
+		if gls_reset = '1' then
+			fifo_write_old := '0';
+			packet_count <= 0;
+		elsif rising_edge(gls_clk) then
+			if fifo_packet_write = '1' then
+				packet_count <= 0;
+			elsif (fifo_write_old = '0') and (fifo_write = '1') then
+				packet_count <= (packet_count + 1) mod 2**16;
+			end if;
+
+			fifo_write_old := fifo_write;
+
+		end if;
+	end process;
+
 	-- Wishbone interface
+	-- TODO: Make it easier to read
 	wishbone : process(gls_clk, gls_reset)
 	begin
 		if gls_reset = '1' then
@@ -220,55 +275,5 @@ begin
 			end if;
 		end if;
 	end process;
-
-	write_enable_falling_edge : process(gls_clk, gls_reset)
-		variable write_enable_old : std_logic := '0';
-	begin
-		if gls_reset = '1' then
-			write_enable_old := '0';
-		elsif rising_edge(gls_clk) then
-
-			if (write_enable_old = '1') and (write_enable = '0') then
-				fifo_packet_write <= '1';
-			else
-				fifo_packet_write <= '0';
-			end if;
-
-			write_enable_old := write_enable;
-		end if;
-	end process;
-
-	fifo_write_rising_edge : process(gls_clk, gls_reset)
-		variable fifo_write_old : std_logic := '0';
-	begin
-		if gls_reset = '1' then
-			fifo_write_old := '0';
-			fifo_write_rising <= '0';
-		elsif rising_edge(gls_clk) then
-			if (fifo_write_old = '0') and (fifo_write = '1') then
-				fifo_write_rising <= '1';
-			else
-				fifo_write_rising <= '0';
-			end if;
-
-			fifo_write_old := fifo_write;
-		end if;
-	end process;
-
-	-- Counting number of received SPI packets
-	packet_count_proc : process(gls_clk, gls_reset)
-	begin
-		if gls_reset = '1' then
-			packet_count <= 0;
-		elsif rising_edge(gls_clk) then
-			if fifo_packet_write = '1' then
-				packet_count <= 0;
-			elsif fifo_write_rising = '1' then
-				packet_count <= (packet_count + 1) mod 2**16;
-			end if;
-		end if;
-	end process;
-
-	fifo_packet_in <= std_logic_vector(to_unsigned(packet_count, 16));
 
 end architecture spisnif_1;

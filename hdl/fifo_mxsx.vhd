@@ -33,7 +33,7 @@ port (
 	reset : in std_logic;
 	write : in std_logic;
 	read_data : in std_logic;
-	data_in : in std_logic_vector(0 downto 0);
+	data_in : in std_logic;
 	write_enable : in std_logic;
 	is_empty : out std_logic;
 	is_full : out std_logic;
@@ -65,17 +65,12 @@ Architecture fifo_mxsx_1 of fifo_mxsx is
 	signal read_addr : std_logic_vector(9 downto 0);
 	signal write_addr : std_logic_vector(13 downto 0);
 	signal write_ram : std_logic;
-
-	-- Edge detection
-	signal write_enable_falling : std_logic := '0';
-	signal write_rising : std_logic := '0';
-	signal read_data_falling : std_logic := '0';
+	signal write_data : std_logic_vector(0 downto 0);
 begin
 
+	-- Integer to vector conversion for read and write indexes
 	read_addr <= std_logic_vector(to_unsigned(data_read_idx, 10));
 	write_addr <= std_logic_vector(to_unsigned(data_write_idx, 14));
-
-	write_ram <= write_rising and write_enable;
 
 	-- Ram instanciation
 	inst_ram : dual_ports_ram_16b_1b
@@ -83,67 +78,64 @@ begin
 	port map ( 	clk => clk,
 			write => write_ram,
 			addr_1b => write_addr,
-			din_1b => data_in,
+			din_1b => write_data,
 			addr_16b => read_addr,
 			dout_16b => data_out);
 
-	ram_management : process(clk, reset)
+	-- Increment write index on each write in RAM
+	-- Align write index to the next 16 bits word when write enable is falling (i.e transmission complete)
+	write_index_management : process(clk, reset)
+		variable write_enable_old : std_logic := '0';
 	begin
 		if reset = '1' then
 			data_write_idx <= 0;
-			data_read_idx <= 0;
-		else
-			if rising_edge(clk) then
-				if write_ram = '1' then
-					data_write_idx <= (data_write_idx + 1) mod (fifo_size*16);
-				elsif write_enable_falling = '1' then -- Place write index on next 16 bit word
-					data_write_idx <= ((data_write_idx / 16) + 1) * 16;
-				end if;
-
-				if read_data_falling = '1' then
-					data_read_idx <= (data_read_idx + 1) mod fifo_size;
-				end if;
+			write_enable_old := '0';
+		elsif rising_edge(clk) then
+			if write_ram = '1' then --Increase index
+				data_write_idx <= (data_write_idx + 1) mod (fifo_size*16);
+			elsif write_enable = '0' and write_enable_old = '1' then -- Place write index on next 16 bit word
+				data_write_idx <= ((data_write_idx / 16) + 1) * 16;
 			end if;
+
+			-- Old value update
+			write_enable_old := write_enable;
 		end if;
 	end process;
 
-	edge_detection : process(clk, reset)
-	variable old_write_enable : std_logic := '0';
-	variable old_write : std_logic := '0';
-	variable old_read_data : std_logic := '0';
+	-- Increment read index on each rising edge of "read_data" signal
+	read_index_management : process(clk, reset)
+		variable old_read_data : std_logic := '0';
 	begin
 		if reset = '1' then
-			write_enable_falling <= '0';
-			write_rising <= '0';
-			read_data_falling <= '0';
-
-			old_write_enable := '0';
-			old_write := '0';
+			data_read_idx <= 0;
 			old_read_data := '0';
-		else
-			if rising_edge(clk) then
-				if (write_enable = '0') and (old_write_enable = '1') then
-					write_enable_falling <= '1';
-				else
-					write_enable_falling <= '0';
-				end if;
-
-				if (write = '1') and (old_write = '0') then
-					write_rising <= '1';
-				else
-					write_rising <= '0';
-				end if;
-
-				if (read_data = '0') and (old_read_data = '1') then
-					read_data_falling <= '1';
-				else
-					read_data_falling <= '0';
-				end if;
-
-				old_write_enable := write_enable;
-				old_write := write;
-				old_read_data := read_data;
+		elsif rising_edge(clk) then
+			if read_data = '1' and old_read_data = '0' then -- Increment index
+				data_read_idx <= (data_read_idx + 1) mod fifo_size;
 			end if;
+
+			-- Old value update
+			old_read_data := read_data;
+		end if;
+	end process;
+
+	-- A write in RAM is triggered by a rising edge of "write" signal when "write_enable" is high
+	write_ram_management : process(clk, reset)
+		variable old_write : std_logic := '0';
+	begin
+		if reset = '1' then
+			write_ram <= '0';
+			write_data <= "0";
+			old_write := '0';
+		elsif rising_edge(clk) then
+			if (old_write = '0') and (write = '1') and (write_enable = '1') then
+				write_ram <= '1';
+				write_data(0) <= data_in;
+			else
+				write_ram <= '0';
+			end if;
+
+			old_write := write;
 		end if;
 	end process;
 

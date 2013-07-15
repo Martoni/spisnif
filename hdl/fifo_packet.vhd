@@ -28,7 +28,7 @@ use IEEE.numeric_std.all;
 
 Entity fifo_packet is
 generic (
-    ram_num          : natural := 3;
+    ram_num  : natural := 1;
     ram_size : natural := 1024
 );
 port (
@@ -44,7 +44,8 @@ port (
     -- pfifo signals
     pf_full : out std_logic;
     pf_empty : out std_logic;
-    pf_init : in std_logic);
+    pf_init : in std_logic;
+    pf_count : out std_logic_vector(10 downto 0));
 end entity;
 
 Architecture fifo_packet_1 of fifo_packet is
@@ -76,6 +77,9 @@ Architecture fifo_packet_1 of fifo_packet is
     end component xilinx_dual_port_ram;
 
 begin
+    -- Packet count
+    pf_count <= std_logic_vector(to_unsigned(wb_count - db_count, 11));
+
     -- Flags
     wb_over_flag <= '1' when wb_count >= db_count else '0';
     pf_full <= '1' when db_count = (ram_num * ram_size) else '0';

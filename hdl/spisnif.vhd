@@ -80,7 +80,9 @@ Architecture spisnif_1 of spisnif is
 	    db_data : in std_logic_vector(15 downto 0);
 	    -- pfifo signals
 	    pf_full : out std_logic;
-	    pf_init : in std_logic);
+	    pf_empty : out std_logic;
+	    pf_init : in std_logic;
+	    pf_count : out std_logic_vector(10 downto 0));
 	end component fifo_packet;
 
 	-- Mosi signals
@@ -102,17 +104,39 @@ Architecture spisnif_1 of spisnif is
 	-- Packet signals
 	signal fifo_packet_out : std_logic_vector(15 downto 0);
 	signal fifo_packet_read : std_logic;
-	signal packet_full : std_logic;
+	signal fifo_packet_full : std_logic;
+	signal fifo_packet_empty : std_logic;
 	signal fifo_packet_over : std_logic;
 	signal fifo_packet_write : std_logic;
 	signal fifo_packet_in : std_logic_vector(15 downto 0);
 
-	-- bit 0 CPOL
-	-- bit 1 CPHA
-	-- bit 2 CSPOL
+	-- Config register
+	---------------
+	-- bit 0 is CPOL
+	-- bit 1 is CPHA
+	-- bit 2 is CSPOL
+	signal config : std_logic_vector(15 downto 0);
+
+	-- Control register
+	---------------
+	-- bits 10 downto 0 is irq_pnum_trig
+	-- bit 14 is irq_ack
+	-- bit 15 is reset
 	signal control : std_logic_vector(15 downto 0);
 
-	signal packet_count : integer range 0 to 2**16-1 := 0;
+	-- Status register
+	---------------
+	-- bit 10 downto 0 is packet_num
+	-- bit 13 is fifo_mxsx_full
+	-- bit 14 is fifo_full
+	-- bit 15 is fifo_empty
+	signal status : std_logic_vector(15 downto 0);
+
+	-- Number of bits received in a packet
+	signal bit_count : integer range 0 to 2**16-1 := 0;
+
+	-- Number of packet received
+	signal packet_count : std_logic_vector(10 downto 0);
 
 	-- Sampled SPI signals
 	signal mosi_tmp, mosi_sync : std_logic := '0';
@@ -121,8 +145,8 @@ Architecture spisnif_1 of spisnif is
 	signal sck_tmp, sck_sync : std_logic := '0';
 begin
 
-	write_enable <= cs_sync xnor control(2);
-	fifo_write <= (sck_sync xnor control(0)) xnor control(1);
+	write_enable <= cs_sync xnor config(2);
+	fifo_write <= (sck_sync xnor config(0)) xnor config(1);
 
 	-- MOSI fifo instance
 	fifo_mosi_inst : fifo_mxsx
@@ -164,8 +188,10 @@ begin
 		wb_over_flag => fifo_packet_over,
 		db_write => fifo_packet_write,
 		db_data => fifo_packet_in,
-		pf_full => packet_full,
-		pf_init => gls_reset); -- TODO
+		pf_full => fifo_packet_full,
+		pf_empty => fifo_packet_empty,
+		pf_init => gls_reset,
+		pf_count => packet_count); -- TODO
 
 	-- Sampling the SPI signals to avoid metastability
 	spi_sampling : process(gls_clk, gls_reset)
@@ -205,7 +231,7 @@ begin
 
 			if (write_enable_old = '1') and (write_enable = '0') then
 				fifo_packet_write <= '1';
-				fifo_packet_in <= std_logic_vector(to_unsigned(packet_count, 16));
+				fifo_packet_in <= std_logic_vector(to_unsigned(bit_count, 16));
 			else
 				fifo_packet_write <= '0';
 			end if;
@@ -217,17 +243,17 @@ begin
 	-- Count number of received SPI packets
 	-- Increment on fifo_write rising edge
 	-- reset when a write to fifo_packet is performed
-	packet_count_proc : process(gls_clk, gls_reset)
+	bit_count_proc : process(gls_clk, gls_reset)
 		variable fifo_write_old : std_logic := '0';
 	begin
 		if gls_reset = '1' then
 			fifo_write_old := '0';
-			packet_count <= 0;
+			bit_count <= 0;
 		elsif rising_edge(gls_clk) then
 			if fifo_packet_write = '1' then
-				packet_count <= 0;
+				bit_count <= 0;
 			elsif (fifo_write_old = '0') and (fifo_write = '1') then
-				packet_count <= (packet_count + 1) mod 2**16;
+				bit_count <= (bit_count + 1) mod 2**16;
 			end if;
 
 			fifo_write_old := fifo_write;
@@ -240,20 +266,20 @@ begin
 	wishbone : process(gls_clk, gls_reset)
 	begin
 		if gls_reset = '1' then
-			control <= (others => '0');
+			config <= (others => '0');
 			wbs_readdata <= (others => '0');
 		elsif rising_edge(gls_clk) then
 			if wbs_write = '1' and (wbs_strobe = '1' or wbs_cycle = '1')then
 				case wbs_add is
-					when "0000" => control <= wbs_writedata;
-					when others => control <= control;
+					when "0000" => config <= wbs_writedata;
+					when others => config <= config;
 				end case;
 				fifo_mosi_read <= '0';
 				fifo_miso_read <= '0';
 				fifo_packet_read <= '0';
 			elsif wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
 				case wbs_add is
-					when "0000" => 	wbs_readdata <= control;
+					when "0000" => 	wbs_readdata <= config;
 					when "0001" =>	wbs_readdata <= fifo_mosi_out;
 							fifo_mosi_read <= '1';
 							fifo_miso_read <= '0';
@@ -266,6 +292,7 @@ begin
 							fifo_packet_read <= '1';
 							fifo_mosi_read <= '0';
 							fifo_miso_read <= '0';
+					when "0100" => 	wbs_readdata <= status;
 					when others => wbs_readdata <= (others => '0');
 				end case;
 			else
@@ -275,5 +302,11 @@ begin
 			end if;
 		end if;
 	end process;
+
+	-- Config register mapping
+	status(10 downto 0) <= packet_count;
+	status(13) <= fifo_mosi_full or fifo_miso_full;
+	status(14) <= fifo_packet_full;
+	status(15) <= fifo_packet_empty;
 
 end architecture spisnif_1;

@@ -43,6 +43,7 @@ port (
     db_data : in std_logic_vector(15 downto 0);
     -- pfifo signals
     pf_full : out std_logic;
+    pf_empty : out std_logic;
     pf_init : in std_logic);
 end entity;
 
@@ -78,6 +79,7 @@ begin
     -- Flags
     wb_over_flag <= '1' when wb_count >= db_count else '0';
     pf_full <= '1' when db_count = (ram_num * ram_size) else '0';
+    pf_empty <= '1' when db_count = wb_count else '0';
 
     db_count_slv <= std_logic_vector(to_unsigned(db_count, ram_num+10));
     wb_count_slv <= std_logic_vector(to_unsigned(wb_count, ram_num+10));

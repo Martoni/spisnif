@@ -54,6 +54,7 @@ Architecture spisnif_1 of spisnif is
 	port (
 		clk : in std_logic;
 		reset : in std_logic;
+		init : in std_logic;
 		write : in std_logic;
 		read_data : in std_logic;
 		data_in : in std_logic;
@@ -122,7 +123,9 @@ Architecture spisnif_1 of spisnif is
 	-- bits 10 downto 0 is irq_pnum_trig
 	-- bit 14 is irq_ack
 	-- bit 15 is reset
-	signal control : std_logic_vector(15 downto 0);
+	signal irq_pnum_trig : std_logic_vector(10 downto 0);
+	signal irq_ack : std_logic;
+	signal fifo_reset : std_logic;
 
 	-- Status register
 	---------------
@@ -154,6 +157,7 @@ begin
 	port map(
 		clk => gls_clk,
 		reset => gls_reset,
+		init => fifo_reset,
 		write => fifo_write,
 		read_data => fifo_mosi_read,
 		data_in => mosi_sync,
@@ -168,6 +172,7 @@ begin
 	port map(
 		clk => gls_clk,
 		reset => gls_reset,
+		init => fifo_reset,
 		write => fifo_write,
 		read_data => fifo_miso_read,
 		data_in => miso_sync,
@@ -190,8 +195,8 @@ begin
 		db_data => fifo_packet_in,
 		pf_full => fifo_packet_full,
 		pf_empty => fifo_packet_empty,
-		pf_init => gls_reset,
-		pf_count => packet_count); -- TODO
+		pf_init => fifo_reset,
+		pf_count => packet_count);
 
 	-- Sampling the SPI signals to avoid metastability
 	spi_sampling : process(gls_clk, gls_reset)
@@ -267,19 +272,30 @@ begin
 	begin
 		if gls_reset = '1' then
 			config <= (others => '0');
+
+			-- Reset control register
+			irq_pnum_trig <= (others => '0');
+			irq_ack <= '0';
+			fifo_reset <= '0';
 			wbs_readdata <= (others => '0');
 		elsif rising_edge(gls_clk) then
+			-- Wishbone write
 			if wbs_write = '1' and (wbs_strobe = '1' or wbs_cycle = '1')then
 				case wbs_add is
-					when "0000" => config <= wbs_writedata;
-					when others => config <= config;
+					-- Control register
+					when "0000" => 	irq_pnum_trig <= wbs_writedata(10 downto 0);
+							irq_ack <= wbs_writedata(14);
+							fifo_reset <= wbs_writedata(15);
+					when "0101" =>	config <= wbs_writedata;
+					when others => 	config <= config;
 				end case;
 				fifo_mosi_read <= '0';
 				fifo_miso_read <= '0';
 				fifo_packet_read <= '0';
+			-- Wishbone read
 			elsif wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
 				case wbs_add is
-					when "0000" => 	wbs_readdata <= config;
+					when "0000" => 	wbs_readdata <= irq_ack & fifo_reset & "000" & irq_pnum_trig;
 					when "0001" =>	wbs_readdata <= fifo_mosi_out;
 							fifo_mosi_read <= '1';
 							fifo_miso_read <= '0';
@@ -293,7 +309,8 @@ begin
 							fifo_mosi_read <= '0';
 							fifo_miso_read <= '0';
 					when "0100" => 	wbs_readdata <= status;
-					when others => wbs_readdata <= (others => '0');
+					when "0101" => 	wbs_readdata <= config;
+					when others => 	wbs_readdata <= (others => '0');
 				end case;
 			else
 				fifo_mosi_read <= '0';

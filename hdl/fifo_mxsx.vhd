@@ -31,6 +31,7 @@ generic(fifo_size : natural := 1024);
 port (
 	clk : in std_logic;
 	reset : in std_logic;
+	init : in std_logic;
 	write : in std_logic;
 	read_data : in std_logic;
 	data_in : in std_logic;
@@ -91,7 +92,9 @@ begin
 			data_write_idx <= 0;
 			write_enable_old := '0';
 		elsif rising_edge(clk) then
-			if write_ram = '1' then --Increase index
+			if init = '1' then
+				data_write_idx <= 0;
+			elsif write_ram = '1' then --Increase index
 				data_write_idx <= (data_write_idx + 1) mod (fifo_size*16);
 			elsif write_enable = '0' and write_enable_old = '1' then -- Place write index on next 16 bit word
 				data_write_idx <= ((data_write_idx / 16) + 1) * 16;
@@ -110,7 +113,9 @@ begin
 			data_read_idx <= 0;
 			old_read_data := '0';
 		elsif rising_edge(clk) then
-			if read_data = '1' and old_read_data = '0' then -- Increment index
+			if init = '1' then
+				data_read_idx <= 0;
+			elsif read_data = '1' and old_read_data = '0' then -- Increment index
 				data_read_idx <= (data_read_idx + 1) mod fifo_size;
 			end if;
 

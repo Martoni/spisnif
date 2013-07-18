@@ -273,7 +273,6 @@ begin
 	wishbone : process(gls_clk, gls_reset)
 	begin
 		if gls_reset = '1' then
-			config <= (others => '0');
 			-- Reset config register
 			cpol <= '0';
 			cpha <= '0';
@@ -292,9 +291,10 @@ begin
 					when "0000" => 	irq_pnum_trig <= wbs_writedata(10 downto 0);
 							irq_ack <= wbs_writedata(14);
 							fifo_reset <= wbs_writedata(15);
+					-- Config
 					when "0101" =>	cpol <= wbs_writedata(0);
 							cpha <= wbs_writedata(1);
-							cspol <= wbs_write_data(2);
+							cspol <= wbs_writedata(2);
 					when others =>
 				end case;
 				fifo_mosi_read <= '0';
@@ -304,12 +304,18 @@ begin
 			elsif wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
 				-- Read register handling
 				case wbs_add is
+					-- Control
 					when "0000" => 	wbs_readdata <= irq_ack & fifo_reset & "000" & irq_pnum_trig;
+					-- Fifos
 					when "0001" =>	wbs_readdata <= fifo_mosi_out;
 					when "0010" =>	wbs_readdata <= fifo_miso_out;
 					when "0011" =>	wbs_readdata <= fifo_packet_out;
+					-- Status
 					when "0100" => 	wbs_readdata <= fifo_packet_empty&fifo_packet_full&fifo_full&"00"&packet_count;
+					-- Config
 					when "0101" => 	wbs_readdata <= "0000000000000"&cspol&cpha&cpol;
+					-- Id
+					when "0111" =>	wbs_readdata <= std_logic_vector(to_unsigned(Id, 16));
 					when others => 	wbs_readdata <= (others => '0');
 				end case;
 

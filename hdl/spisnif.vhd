@@ -133,7 +133,7 @@ Architecture spisnif_1 of spisnif is
 	-- bit 13 is fifo_mxsx_full
 	-- bit 14 is fifo_full
 	-- bit 15 is fifo_empty
-	signal status : std_logic_vector(15 downto 0);
+	signal fifo_full : std_logic;
 
 	-- Number of bits received in a packet
 	signal bit_count : integer range 0 to 2**16-1 := 0;
@@ -308,7 +308,7 @@ begin
 							fifo_packet_read <= '1';
 							fifo_mosi_read <= '0';
 							fifo_miso_read <= '0';
-					when "0100" => 	wbs_readdata <= status;
+					when "0100" => 	wbs_readdata <= fifo_packet_empty&fifo_packet_full&fifo_full&"00"&packet_count;
 					when "0101" => 	wbs_readdata <= config;
 					when others => 	wbs_readdata <= (others => '0');
 				end case;
@@ -321,9 +321,6 @@ begin
 	end process;
 
 	-- Config register mapping
-	status(10 downto 0) <= packet_count;
-	status(13) <= fifo_mosi_full or fifo_miso_full;
-	status(14) <= fifo_packet_full;
-	status(15) <= fifo_packet_empty;
+	fifo_full <= fifo_mosi_full or fifo_miso_full;
 
 end architecture spisnif_1;

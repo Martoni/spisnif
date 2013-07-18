@@ -300,6 +300,7 @@ begin
 				fifo_mosi_read <= '0';
 				fifo_miso_read <= '0';
 				fifo_packet_read <= '0';
+				wbs_readdata <= (others => '0');
 			-- Wishbone read
 			elsif wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
 				-- Read register handling
@@ -338,6 +339,7 @@ begin
 				fifo_mosi_read <= '0';
 				fifo_miso_read <= '0';
 				fifo_packet_read <= '0';
+				wbs_readdata <= (others => '0');
 			end if;
 		end if;
 	end process;

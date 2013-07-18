@@ -116,7 +116,9 @@ Architecture spisnif_1 of spisnif is
 	-- bit 0 is CPOL
 	-- bit 1 is CPHA
 	-- bit 2 is CSPOL
-	signal config : std_logic_vector(15 downto 0);
+	signal cpol : std_logic;
+	signal cpha : std_logic;
+	signal cspol : std_logic;
 
 	-- Control register
 	---------------
@@ -148,8 +150,8 @@ Architecture spisnif_1 of spisnif is
 	signal sck_tmp, sck_sync : std_logic := '0';
 begin
 
-	write_enable <= cs_sync xnor config(2);
-	fifo_write <= (sck_sync xnor config(0)) xnor config(1);
+	write_enable <= cs_sync xnor cspol;
+	fifo_write <= (sck_sync xnor cpol) xnor cpha;
 
 	-- MOSI fifo instance
 	fifo_mosi_inst : fifo_mxsx
@@ -272,6 +274,10 @@ begin
 	begin
 		if gls_reset = '1' then
 			config <= (others => '0');
+			-- Reset config register
+			cpol <= '0';
+			cpha <= '0';
+			cspol <= '0';
 
 			-- Reset control register
 			irq_pnum_trig <= (others => '0');
@@ -286,14 +292,17 @@ begin
 					when "0000" => 	irq_pnum_trig <= wbs_writedata(10 downto 0);
 							irq_ack <= wbs_writedata(14);
 							fifo_reset <= wbs_writedata(15);
-					when "0101" =>	config <= wbs_writedata;
-					when others => 	config <= config;
+					when "0101" =>	cpol <= wbs_writedata(0);
+							cpha <= wbs_writedata(1);
+							cspol <= wbs_write_data(2);
+					when others =>
 				end case;
 				fifo_mosi_read <= '0';
 				fifo_miso_read <= '0';
 				fifo_packet_read <= '0';
 			-- Wishbone read
 			elsif wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
+				-- Register handling
 				case wbs_add is
 					when "0000" => 	wbs_readdata <= irq_ack & fifo_reset & "000" & irq_pnum_trig;
 					when "0001" =>	wbs_readdata <= fifo_mosi_out;
@@ -309,7 +318,7 @@ begin
 							fifo_mosi_read <= '0';
 							fifo_miso_read <= '0';
 					when "0100" => 	wbs_readdata <= fifo_packet_empty&fifo_packet_full&fifo_full&"00"&packet_count;
-					when "0101" => 	wbs_readdata <= config;
+					when "0101" => 	wbs_readdata <= "0000000000000"&cspol&cpha&cpol;
 					when others => 	wbs_readdata <= (others => '0');
 				end case;
 			else

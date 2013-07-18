@@ -302,24 +302,31 @@ begin
 				fifo_packet_read <= '0';
 			-- Wishbone read
 			elsif wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
-				-- Register handling
+				-- Read register handling
 				case wbs_add is
 					when "0000" => 	wbs_readdata <= irq_ack & fifo_reset & "000" & irq_pnum_trig;
 					when "0001" =>	wbs_readdata <= fifo_mosi_out;
-							fifo_mosi_read <= '1';
-							fifo_miso_read <= '0';
-							fifo_packet_read <= '0';
 					when "0010" =>	wbs_readdata <= fifo_miso_out;
-							fifo_miso_read <= '1';
-							fifo_mosi_read <= '0';
-							fifo_packet_read <= '0';
 					when "0011" =>	wbs_readdata <= fifo_packet_out;
-							fifo_packet_read <= '1';
-							fifo_mosi_read <= '0';
-							fifo_miso_read <= '0';
 					when "0100" => 	wbs_readdata <= fifo_packet_empty&fifo_packet_full&fifo_full&"00"&packet_count;
 					when "0101" => 	wbs_readdata <= "0000000000000"&cspol&cpha&cpol;
 					when others => 	wbs_readdata <= (others => '0');
+				end case;
+
+				-- Fifo read signals handling
+				case wbs_add is
+					when "0000" =>	fifo_mosi_read <= '1';
+							fifo_miso_read <= '0';
+							fifo_packet_read <= '0';
+					when "0010" =>	fifo_miso_read <= '1';
+							fifo_mosi_read <= '0';
+							fifo_packet_read <= '0';
+					when "0011" =>	fifo_packet_read <= '1';
+							fifo_mosi_read <= '0';
+							fifo_miso_read <= '0';
+					when others =>	fifo_mosi_read <= '0';
+							fifo_miso_read <= '0';
+							fifo_packet_read <= '0';
 				end case;
 			else
 				fifo_mosi_read <= '0';

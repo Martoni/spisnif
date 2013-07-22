@@ -344,6 +344,31 @@ begin
 		end if;
 	end process;
 
+	-- IRQ management
+	irq_management : process(gls_reset, gls_clk)
+	variable irq_ack_lock : std_logic := '0';
+	begin
+		if (gls_reset = '1') then
+			wbs_irq <= '0';
+			irq_ack_lock := '0';
+		elsif (rising_edge(gls_clk)) then
+			if (packet_count >= irq_pnum_trig) and irq_ack_lock = '1' then
+				if irq_ack_lock = '1' then -- Ack previously received
+					wbs_irq <= '0';
+				else -- Ack not received yet
+					wbs_irq <= '1';
+
+					if irq_ack = '1' then
+						irq_ack_lock := '1'; -- Lock ack
+					end if;
+				end if;
+			else
+				irq_ack_lock := '0'; -- Reset lock
+				wbs_irq <= '0';
+			end if;
+		end if;
+	end process;
+
 	-- Config register mapping
 	fifo_full <= fifo_mosi_full or fifo_miso_full;
 

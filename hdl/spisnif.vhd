@@ -20,6 +20,8 @@ generic(
     id : natural := 1;
     fifo_miso_size : natural := 1024;
     fifo_mosi_size : natural := 1024;
+    fifo_miso_num : natural := 1;
+    fifo_mosi_num : natural := 1;
     fifo_packet_ram_num : natural := 3;
     fifo_packet_ram_size : natural := 1024
 );
@@ -50,7 +52,8 @@ Architecture spisnif_1 of spisnif is
 ---------------------------------------------------------------------------
 
 	component fifo_mxsx
-	generic(fifo_size : natural := 1024);
+	generic(ram_size : natural := 1024;
+		ram_num : natural := 1);
 	port (
 		clk : in std_logic;
 		reset : in std_logic;
@@ -155,7 +158,8 @@ begin
 
 	-- MOSI fifo instance
 	fifo_mosi_inst : fifo_mxsx
-	generic map(fifo_size => fifo_mosi_size)
+	generic map(	ram_size => fifo_mosi_size,
+			ram_num => fifo_mosi_num)
 	port map(
 		clk => gls_clk,
 		reset => gls_reset,
@@ -170,7 +174,8 @@ begin
 
 	-- MISO fifo instance
 	fifo_miso_inst : fifo_mxsx
-	generic map(fifo_size => fifo_miso_size)
+	generic map(	ram_size => fifo_miso_size,
+			ram_num => fifo_miso_num)
 	port map(
 		clk => gls_clk,
 		reset => gls_reset,

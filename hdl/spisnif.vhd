@@ -282,7 +282,10 @@ begin
 			irq_pnum_trig <= (others => '0');
 			irq_ack <= '0';
 			fifo_reset <= '0';
+
+			-- Wishbone signals
 			wbs_readdata <= (others => '0');
+			wbs_ack <= '0';
 		elsif rising_edge(gls_clk) then
 			-- Wishbone write
 			if wbs_write = '1' and (wbs_strobe = '1' or wbs_cycle = '1')then
@@ -291,12 +294,15 @@ begin
 					when "0000" => 	irq_pnum_trig <= wbs_writedata(10 downto 0);
 							irq_ack <= wbs_writedata(14);
 							fifo_reset <= wbs_writedata(15);
+							wbs_ack <= '1';
 					-- Config
 					when "0101" =>	cpol <= wbs_writedata(0);
 							cpha <= wbs_writedata(1);
 							cspol <= wbs_writedata(2);
+							wbs_ack <= '1';
 					when others =>
 				end case;
+
 				fifo_mosi_read <= '0';
 				fifo_miso_read <= '0';
 				fifo_packet_read <= '0';
@@ -335,7 +341,10 @@ begin
 							fifo_miso_read <= '0';
 							fifo_packet_read <= '0';
 				end case;
+
+				wbs_ack <= '0';
 			else
+				wbs_ack <= '0';
 				fifo_mosi_read <= '0';
 				fifo_miso_read <= '0';
 				fifo_packet_read <= '0';

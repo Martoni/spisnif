@@ -54,11 +54,6 @@ Architecture fifo_packet_1 of fifo_packet is
     signal db_count : natural range 0 to (ram_num * ram_size) := 0;
     signal wb_count_slv : std_logic_vector(ram_num + 9 downto 0) := (others => '0');
     signal db_count_slv : std_logic_vector(ram_num + 9 downto 0) := (others => '0');
-    -- triggers
-    signal wb_rd_rise : std_logic;
-    signal wb_rd_fall : std_logic;
-    signal db_write_rise : std_logic;
-    signal db_write_fall : std_logic;
 
     type word_array is array (natural range <>) of std_logic_vector(15 downto 0);
     signal rams_out_data : word_array(ram_num - 1 downto 0) := (others => (others => '0'));

@@ -366,7 +366,7 @@ begin
 			wbs_irq <= '0';
 			irq_ack_lock := '0';
 		elsif (rising_edge(gls_clk)) then
-			if (packet_count >= irq_pnum_trig) and irq_ack_lock = '1' then
+			if (packet_count >= irq_pnum_trig) then
 				if irq_ack_lock = '1' then -- Ack previously received
 					wbs_irq <= '0';
 				else -- Ack not received yet

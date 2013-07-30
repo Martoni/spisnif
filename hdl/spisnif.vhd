@@ -262,7 +262,7 @@ begin
 			fifo_write_old := '0';
 			bit_count <= 0;
 		elsif rising_edge(gls_clk) then
-			if fifo_packet_write = '1' then
+			if fifo_packet_write = '1' or fifo_reset = '1' then
 				bit_count <= 0;
 			elsif (fifo_write_old = '0') and (fifo_write = '1') then
 				bit_count <= (bit_count + 1) mod 2**16;

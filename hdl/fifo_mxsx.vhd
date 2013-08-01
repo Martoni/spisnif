@@ -129,7 +129,7 @@ begin
 		elsif rising_edge(clk) then
 			if init = '1' then
 				data_read_idx <= 0;
-			elsif read_data = '1' and old_read_data = '0' then -- Increment index
+			elsif read_data = '0' and old_read_data = '1' then -- Increment index
 				data_read_idx <= (data_read_idx + 1) mod ram_size;
 			end if;
 

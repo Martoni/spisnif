@@ -300,7 +300,6 @@ begin
 			wbs_readdata <= (others => '0');
 			wbs_ack <= '0';
 			wbs_writedata_tmp <= (others => '0');
-			wbs_readdata_tmp <= (others => '0');
 			wbs_write_tmp <= '0';
 			wbs_cycle_old <= '0';
 			wbs_strobe_old <= '0';
@@ -337,12 +336,24 @@ begin
 					when others =>
 				end case;
 
-				fifo_mosi_read <= '0';
-				fifo_miso_read <= '0';
-				fifo_packet_read <= '0';
-				wbs_readdata_tmp <= (others => '0');
+				wbs_readdata <= (others => '0');
+			else
+				wbs_ack <= '0';
+				wbs_readdata <= (others => '0');
+			end if;
+		end if;
+	end process;
+
+	wishbone_read : process(gls_reset, gls_clk)
+	begin
+		if gls_reset = '1' then
+			wbs_readdata_tmp <= (others => '0');
+			fifo_mosi_read <= '0';
+			fifo_miso_read <= '0';
+			fifo_packet_read <= '0';
+		elsif rising_edge(gls_clk) then
 			-- Wishbone read
-			elsif wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
+			if wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
 				-- Read register handling
 				case wbs_add is
 					-- Control
@@ -360,7 +371,7 @@ begin
 					when others => 	wbs_readdata_tmp <= (others => '0');
 				end case;
 
-				-- Fifo read signals handling
+				-- Fifo read signals handling. Index is incremented on falling edges
 				case wbs_add is
 					when "000" =>	fifo_mosi_read <= '1';
 							fifo_miso_read <= '0';
@@ -378,11 +389,9 @@ begin
 
 				wbs_ack <= '0';
 			else
-				wbs_ack <= '0';
 				fifo_mosi_read <= '0';
 				fifo_miso_read <= '0';
 				fifo_packet_read <= '0';
-				wbs_readdata <= (others => '0');
 			end if;
 		end if;
 	end process;

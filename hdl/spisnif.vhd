@@ -336,10 +336,8 @@ begin
 					when others =>
 				end case;
 
-				wbs_readdata <= (others => '0');
 			else
 				wbs_ack <= '0';
-				wbs_readdata <= (others => '0');
 			end if;
 		end if;
 	end process;
@@ -373,15 +371,18 @@ begin
 
 				-- Fifo read signals handling. Index is incremented on falling edges
 				case wbs_add is
-					when "000" =>	fifo_mosi_read <= '1';
+					when "001" =>	fifo_mosi_read <= '1';
 							fifo_miso_read <= '0';
 							fifo_packet_read <= '0';
-					when "010" =>	fifo_miso_read <= '1';
-							fifo_mosi_read <= '0';
+
+					when "010" =>	fifo_mosi_read <= '0';
+							fifo_miso_read <= '1';
 							fifo_packet_read <= '0';
-					when "011" =>	fifo_packet_read <= '1';
-							fifo_mosi_read <= '0';
+
+					when "011" =>	fifo_mosi_read <= '0';
 							fifo_miso_read <= '0';
+							fifo_packet_read <= '1';
+
 					when others =>	fifo_mosi_read <= '0';
 							fifo_miso_read <= '0';
 							fifo_packet_read <= '0';

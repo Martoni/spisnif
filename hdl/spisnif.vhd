@@ -282,30 +282,19 @@ begin
 	end process;
 
 	-- Wishbone interface
-	-- TODO: Make it easier to read
 	wishbone : process(gls_clk, gls_reset)
 	begin
 		if gls_reset = '1' then
-			-- Reset config register
-			cpol <= '0';
-			cpha <= '0';
-			cspol <= '0';
-
-			-- Reset control register
-			irq_pnum_trig <= "00000000001";
-			irq_ack <= '0';
-			fifo_reset <= '0';
-
 			-- Wishbone signals
 			wbs_readdata <= (others => '0');
 			wbs_ack <= '0';
+
 			wbs_writedata_tmp <= (others => '0');
 			wbs_write_tmp <= '0';
-			wbs_cycle_old <= '0';
-			wbs_strobe_old <= '0';
 		elsif rising_edge(gls_clk) then
-			wbs_cycle_old <= wbs_cycle;
-			wbs_strobe_old <= wbs_strobe;
+
+
+			-- Wishbone access
 			if wbs_strobe = '1' or wbs_cycle = '1' then
 				wbs_add_tmp <= wbs_add;
 				wbs_write_tmp <= wbs_write;
@@ -315,27 +304,13 @@ begin
 				else
 					wbs_readdata <= wbs_readdata_tmp;
 				end if;
-			end if;
 
-			-- Write when falling edge on strobe or cycle
-			if ((wbs_strobe = '0' and wbs_strobe_old = '1') or
-				(wbs_cycle = '0' and wbs_cycle_old = '1'))
-				and wbs_write_tmp = '1' then
+				wbs_ack <= '0';
 
+			-- Ack on falling edge
+			elsif 	(wbs_strobe = '0' and wbs_strobe_old = '1') or
+				(wbs_cycle = '0' and wbs_cycle_old = '1') then
 				wbs_ack <= '1';
-
-				case wbs_add_tmp is
-					-- Control register
-					when "000" => 	irq_pnum_trig <= wbs_writedata_tmp(10 downto 0);
-							irq_ack <= wbs_writedata_tmp(14);
-							fifo_reset <= wbs_writedata_tmp(15);
-					-- Config
-					when "101" =>	cpol <= wbs_writedata_tmp(0);
-							cpha <= wbs_writedata_tmp(1);
-							cspol <= wbs_writedata_tmp(2);
-					when others =>
-				end case;
-
 			else
 				wbs_ack <= '0';
 			end if;
@@ -388,11 +363,43 @@ begin
 							fifo_packet_read <= '0';
 				end case;
 
-				wbs_ack <= '0';
 			else
 				fifo_mosi_read <= '0';
 				fifo_miso_read <= '0';
 				fifo_packet_read <= '0';
+			end if;
+		end if;
+	end process;
+
+	wishbone_write : process(gls_reset, gls_clk)
+	begin
+		if (gls_reset = '1') then
+			-- Reset control register
+			irq_pnum_trig <= "00000000001";
+			irq_ack <= '0';
+			fifo_reset <= '0';
+
+			-- Reset config register
+			cpol <= '0';
+			cpha <= '0';
+			cspol <= '0';
+		elsif (rising_edge(gls_clk)) then
+			-- Write when falling edge on strobe or cycle
+			if ((wbs_strobe = '0' and wbs_strobe_old = '1') or
+				(wbs_cycle = '0' and wbs_cycle_old = '1'))
+				and wbs_write_tmp = '1' then
+
+				case wbs_add_tmp is
+					-- Control register
+					when "000" => 	irq_pnum_trig <= wbs_writedata_tmp(10 downto 0);
+							irq_ack <= wbs_writedata_tmp(14);
+							fifo_reset <= wbs_writedata_tmp(15);
+					-- Config
+					when "101" =>	cpol <= wbs_writedata_tmp(0);
+							cpha <= wbs_writedata_tmp(1);
+							cspol <= wbs_writedata_tmp(2);
+					when others =>
+				end case;
 			end if;
 		end if;
 	end process;
@@ -419,6 +426,17 @@ begin
 				irq_ack_lock := '0'; -- Reset lock
 				wbs_irq <= '0';
 			end if;
+		end if;
+	end process;
+
+	trigger : process(gls_reset, gls_clk)
+	begin
+		if gls_reset = '1' then
+			wbs_cycle_old <= '0';
+			wbs_strobe_old <= '0';
+		elsif rising_edge(gls_clk) then
+			wbs_cycle_old <= wbs_cycle;
+			wbs_strobe_old <= wbs_strobe;
 		end if;
 	end process;
 

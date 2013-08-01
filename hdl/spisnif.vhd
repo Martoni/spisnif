@@ -31,7 +31,7 @@ port
     gls_reset    : in std_logic;
     gls_clk      : in std_logic;
     -- Wishbone signals
-    wbs_add       : in std_logic_vector(3 downto 0);
+    wbs_add       : in std_logic_vector(2 downto 0);
     wbs_writedata : in std_logic_vector(15 downto 0);
     wbs_readdata  : out std_logic_vector(15 downto 0);
     wbs_strobe    : in std_logic;
@@ -151,6 +151,14 @@ Architecture spisnif_1 of spisnif is
 	signal miso_tmp, miso_sync : std_logic := '0';
 	signal cs_tmp, cs_sync : std_logic := '0';
 	signal sck_tmp, sck_sync : std_logic := '0';
+
+	-- Wishbone signal
+	signal wbs_add_tmp : std_logic_vector(2 downto 0) := (others => '0');
+	signal wbs_readdata_tmp : std_logic_vector(15 downto 0) := (others => '0');
+	signal wbs_writedata_tmp : std_logic_vector(15 downto 0) := (others => '0');
+	signal wbs_write_tmp : std_logic := '0';
+	signal wbs_strobe_old : std_logic := '0';
+	signal wbs_cycle_old : std_logic := '0';
 begin
 
 	write_enable <= cs_sync xnor cspol;
@@ -284,62 +292,83 @@ begin
 			cspol <= '0';
 
 			-- Reset control register
-			irq_pnum_trig <= (others => '0');
+			irq_pnum_trig <= "00000000001";
 			irq_ack <= '0';
 			fifo_reset <= '0';
 
 			-- Wishbone signals
 			wbs_readdata <= (others => '0');
 			wbs_ack <= '0';
+			wbs_writedata_tmp <= (others => '0');
+			wbs_readdata_tmp <= (others => '0');
+			wbs_write_tmp <= '0';
+			wbs_cycle_old <= '0';
+			wbs_strobe_old <= '0';
 		elsif rising_edge(gls_clk) then
-			-- Wishbone write
-			if wbs_write = '1' and (wbs_strobe = '1' or wbs_cycle = '1')then
-				case wbs_add is
+			wbs_cycle_old <= wbs_cycle;
+			wbs_strobe_old <= wbs_strobe;
+			if wbs_strobe = '1' or wbs_cycle = '1' then
+				wbs_add_tmp <= wbs_add;
+				wbs_write_tmp <= wbs_write;
+
+				if wbs_write = '1' then
+					wbs_writedata_tmp <= wbs_writedata;
+				else
+					wbs_readdata <= wbs_readdata_tmp;
+				end if;
+			end if;
+
+			-- Write when falling edge on strobe or cycle
+			if ((wbs_strobe = '0' and wbs_strobe_old = '1') or
+				(wbs_cycle = '0' and wbs_cycle_old = '1'))
+				and wbs_write_tmp = '1' then
+
+				wbs_ack <= '1';
+
+				case wbs_add_tmp is
 					-- Control register
-					when "0000" => 	irq_pnum_trig <= wbs_writedata(10 downto 0);
-							irq_ack <= wbs_writedata(14);
-							fifo_reset <= wbs_writedata(15);
-							wbs_ack <= '1';
+					when "000" => 	irq_pnum_trig <= wbs_writedata_tmp(10 downto 0);
+							irq_ack <= wbs_writedata_tmp(14);
+							fifo_reset <= wbs_writedata_tmp(15);
 					-- Config
-					when "0101" =>	cpol <= wbs_writedata(0);
-							cpha <= wbs_writedata(1);
-							cspol <= wbs_writedata(2);
-							wbs_ack <= '1';
+					when "101" =>	cpol <= wbs_writedata_tmp(0);
+							cpha <= wbs_writedata_tmp(1);
+							cspol <= wbs_writedata_tmp(2);
 					when others =>
 				end case;
 
 				fifo_mosi_read <= '0';
 				fifo_miso_read <= '0';
 				fifo_packet_read <= '0';
-				wbs_readdata <= (others => '0');
+				wbs_readdata_tmp <= (others => '0');
 			-- Wishbone read
 			elsif wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
 				-- Read register handling
 				case wbs_add is
 					-- Control
-					when "0000" => 	wbs_readdata <= irq_ack & fifo_reset & "000" & irq_pnum_trig;
+					when "000" => 	wbs_readdata_tmp <= irq_ack & fifo_reset & "000" & irq_pnum_trig;
 					-- Fifos
-					when "0001" =>	wbs_readdata <= fifo_mosi_out;
-					when "0010" =>	wbs_readdata <= fifo_miso_out;
-					when "0011" =>	wbs_readdata <= fifo_packet_out;
+					when "001" =>	wbs_readdata_tmp <= fifo_mosi_out;
+					when "010" =>	wbs_readdata_tmp <= fifo_miso_out;
+					when "011" =>	wbs_readdata_tmp <= fifo_packet_out;
 					-- Status
-					when "0100" => 	wbs_readdata <= fifo_packet_empty&fifo_packet_full&fifo_full&"00"&packet_count;
+					when "100" => 	wbs_readdata_tmp <= fifo_packet_empty&fifo_packet_full&fifo_full&"00"&packet_count;
 					-- Config
-					when "0101" => 	wbs_readdata <= "0000000000000"&cspol&cpha&cpol;
+					when "101" => 	wbs_readdata_tmp <= "0000000000000"&cspol&cpha&cpol;
 					-- Id
-					when "0111" =>	wbs_readdata <= std_logic_vector(to_unsigned(Id, 16));
-					when others => 	wbs_readdata <= (others => '0');
+					when "111" =>	wbs_readdata_tmp <= std_logic_vector(to_unsigned(Id, 16));
+					when others => 	wbs_readdata_tmp <= (others => '0');
 				end case;
 
 				-- Fifo read signals handling
 				case wbs_add is
-					when "0000" =>	fifo_mosi_read <= '1';
+					when "000" =>	fifo_mosi_read <= '1';
 							fifo_miso_read <= '0';
 							fifo_packet_read <= '0';
-					when "0010" =>	fifo_miso_read <= '1';
+					when "010" =>	fifo_miso_read <= '1';
 							fifo_mosi_read <= '0';
 							fifo_packet_read <= '0';
-					when "0011" =>	fifo_packet_read <= '1';
+					when "011" =>	fifo_packet_read <= '1';
 							fifo_mosi_read <= '0';
 							fifo_miso_read <= '0';
 					when others =>	fifo_mosi_read <= '0';

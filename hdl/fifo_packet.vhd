@@ -73,7 +73,7 @@ Architecture fifo_packet_1 of fifo_packet is
 
 begin
     -- Packet count
-    pf_count <= std_logic_vector(to_unsigned(wb_count - db_count, 11));
+    pf_count <= std_logic_vector(to_unsigned(db_count - wb_count, 11));
 
     -- Flags
     wb_over_flag <= '1' when wb_count >= db_count else '0';

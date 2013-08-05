@@ -50,7 +50,7 @@ Architecture spisnif_tb_1 of spisnif_tb is
 
     signal imx_clk : std_logic;
     signal reset : std_logic;
-    signal wbs_add       : std_logic_vector(3 downto 0);
+    signal wbs_add       : std_logic_vector(2 downto 0);
     signal wbs_writedata : std_logic_vector(15 downto 0);
     signal wbs_readdata  : std_logic_vector(15 downto 0);
     signal wbs_strobe    : std_logic;
@@ -72,7 +72,7 @@ component spisnif
         gls_reset    : in std_logic;
         gls_clk      : in std_logic;
         -- Wishbone signals
-        wbs_add       : in std_logic_vector(3 downto 0);
+        wbs_add       : in std_logic_vector(2 downto 0);
         wbs_writedata : in std_logic_vector(15 downto 0);
         wbs_readdata  : out std_logic_vector(15 downto 0);
         wbs_strobe    : in std_logic;
@@ -96,7 +96,9 @@ end component;
     signal irq_pnum_trig : std_logic_vector(10 downto 0);
 
     constant MOSI_VALUE : std_logic_vector := "111111";
-    constant MISO_VALUE : std_logic_vector := "000000";
+    constant MISO_VALUE : std_logic_vector := "010101";
+    constant MOSI_VALUE2 : std_logic_vector := "011";
+    constant MISO_VALUE2 : std_logic_vector := "010";
 
 begin
 
@@ -147,7 +149,14 @@ begin
                        spi_mosi => mosi,
                        spi_miso => miso,
                        spi_cs => cs);
-
+	wait for 1 us;
+        spi_send_frame(mosi => MOSI_VALUE2, miso => MISO_VALUE2,
+                       clock_per => 20 ns,
+                       cpol => '0', cpha => '0', cspol => '0',
+                       spi_clock => sck,
+                       spi_mosi => mosi,
+                       spi_miso => miso,
+                       spi_cs => cs);
         wait for 1000 ms; -- do not loop
     end process;
 
@@ -167,60 +176,86 @@ begin
         -- read component identifiant
         wishbone_read(REG_ID,  value,
                       imx_clk, wbs_strobe, wbs_cycle,
-                      wbs_write, wbs_ack, wbs_add(2 downto 0),
+                      wbs_write, wbs_ack, wbs_add,
                       wbs_writedata, wbs_readdata, 5);
         report "Identifiant read:"&integer'image(to_integer(unsigned(value)))&".";
 
-        -- reset component and configure irq to trigg when 1 packets received
-        irq_pnum_trig <= "00000000001";
-        wishbone_write( REG_CONTROL, "10000"&irq_pnum_trig,
-                        imx_clk, wbs_strobe, wbs_cycle,
-                        wbs_write, wbs_ack, wbs_add(2 downto 0),
-                        wbs_writedata, wbs_readdata, 5);
-
-        -- write configuration CSPOL=0, CPOL=0, CPHA=0
+        -- write configuration CSPOL=0, CPHA=0, CPOL=0
         wishbone_write( REG_CONFIG, x"0000",
                         imx_clk, wbs_strobe, wbs_cycle,
-                        wbs_write, wbs_ack, wbs_add(2 downto 0),
+                        wbs_write, wbs_ack, wbs_add,
+                        wbs_writedata, wbs_readdata, 5);
+        -- reset component and configure irq to trigg when 1 packets received
+        irq_pnum_trig <= "00000000010";
+	wait for 10 ns;
+        wishbone_write( REG_CONTROL, "10000"&irq_pnum_trig,
+                        imx_clk, wbs_strobe, wbs_cycle,
+                        wbs_write, wbs_ack, wbs_add,
                         wbs_writedata, wbs_readdata, 5);
 
-        --wait until rising_edge(wbs_irq);
-        wait for 4 us; -- to be replaced by rising_edge(wbs_irq)
+        wishbone_write( REG_CONTROL, "00000"&irq_pnum_trig,
+                        imx_clk, wbs_strobe, wbs_cycle,
+                        wbs_write, wbs_ack, wbs_add,
+                        wbs_writedata, wbs_readdata, 5);
+
+        wait until rising_edge(wbs_irq);
 
         -- read status
         wishbone_read(REG_STATUS,  value,
                       imx_clk, wbs_strobe, wbs_cycle,
-                      wbs_write, wbs_ack, wbs_add(2 downto 0),
+                      wbs_write, wbs_ack, wbs_add,
                       wbs_writedata, wbs_readdata, 5);
         report "status read:"&integer'image(to_integer(unsigned(value)))&".";
 
         assert value(15) = '0' report "fifo_empty is not null, fifo isn't empty."
                                          severity warning;
-        assert value(11 downto 0) = irq_pnum_trig
-            report "Packet number must be "&integer'image(to_integer(unsigned(irq_pnum_trig)))
-                                         severity warning;
+        --assert value(11 downto 0) = irq_pnum_trig
+            --report "Packet number must be "&integer'image(to_integer(unsigned(irq_pnum_trig)))
+                                         --severity warning;
 
         -- acknowledge interrupt
         wishbone_write( REG_CONTROL, "01000"&irq_pnum_trig,
                         imx_clk, wbs_strobe, wbs_cycle,
-                        wbs_write, wbs_ack, wbs_add(2 downto 0),
+                        wbs_write, wbs_ack, wbs_add,
                         wbs_writedata, wbs_readdata, 5);
+        wishbone_write( REG_CONTROL, "00000"&irq_pnum_trig,
+                        imx_clk, wbs_strobe, wbs_cycle,
+                        wbs_write, wbs_ack, wbs_add,
+                        wbs_writedata, wbs_readdata, 5);
+
 
         -- read packet description
         wishbone_read(REG_FIFO_PACKET,  value,
                       imx_clk, wbs_strobe, wbs_cycle,
-                      wbs_write, wbs_ack, wbs_add(2 downto 0),
+                      wbs_write, wbs_ack, wbs_add,
                       wbs_writedata, wbs_readdata, 5);
         wishbone_read(REG_FIFO_MOSI,  value,
                       imx_clk, wbs_strobe, wbs_cycle,
-                      wbs_write, wbs_ack, wbs_add(2 downto 0),
+                      wbs_write, wbs_ack, wbs_add,
                       wbs_writedata, wbs_readdata, 5);
         wishbone_read(REG_FIFO_MISO,  value,
                       imx_clk, wbs_strobe, wbs_cycle,
-                      wbs_write, wbs_ack, wbs_add(2 downto 0),
+                      wbs_write, wbs_ack, wbs_add,
                       wbs_writedata, wbs_readdata, 5);
 
-        wait for 2 us;
+        wishbone_read(REG_FIFO_PACKET,  value,
+                      imx_clk, wbs_strobe, wbs_cycle,
+                      wbs_write, wbs_ack, wbs_add,
+                      wbs_writedata, wbs_readdata, 5);
+        wishbone_read(REG_FIFO_MOSI,  value,
+                      imx_clk, wbs_strobe, wbs_cycle,
+                      wbs_write, wbs_ack, wbs_add,
+                      wbs_writedata, wbs_readdata, 5);
+        wishbone_read(REG_FIFO_MISO,  value,
+                      imx_clk, wbs_strobe, wbs_cycle,
+                      wbs_write, wbs_ack, wbs_add,
+                      wbs_writedata, wbs_readdata, 5);
+        wishbone_read(REG_STATUS,  value,
+                      imx_clk, wbs_strobe, wbs_cycle,
+                      wbs_write, wbs_ack, wbs_add,
+                      wbs_writedata, wbs_readdata, 5);
+
+	wait for 2 us;
         assert false report "*** End of test ***" severity error;
     end process stimulis;
 

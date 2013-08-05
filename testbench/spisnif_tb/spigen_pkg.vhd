@@ -61,16 +61,23 @@ package body spigen_pkg is
         wait for clock_per/2;
 
         for i in mosi'left to mosi'right loop
-                spi_clock <= cpha;
-                spi_mosi <= mosi(i);
-                spi_miso <= miso(i);
+                spi_clock <= cpol;
+		if (cpha = '0') then --set the data before the first edge (capture CPHA=0)
+                	spi_mosi <= mosi(i);
+                	spi_miso <= miso(i);
+		end if;
                 wait for clock_per/2;
-                spi_clock <= not cpha;
+		if (cpha = '1') then --set the data before second edge (capture CPHA=1)
+                	spi_mosi <= mosi(i);
+                	spi_miso <= miso(i);
+		end if;
+                spi_clock <= not cpol;
                 wait for clock_per/2;
         end loop;
         -- end of frame
-        spi_cs <= not cspol;
         spi_clock <= cpol;
+	wait for clock_per/2;
+        spi_cs <= not cspol;
     end procedure spi_send_frame;
 
 end package body spigen_pkg;

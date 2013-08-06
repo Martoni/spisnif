@@ -21,6 +21,10 @@
 
     <hdl_files>
         <hdl_file filename="spisnif.vhd" scope="all" istop="1" />
+        <hdl_file filename="dual_ports_ram_16b_1b.vhd" scope="all" istop="0" />
+        <hdl_file filename="fifo_mxsx.vhd" scope="all" istop="0" />
+        <hdl_file filename="fifo_packet.vhd" scope="all" istop="0" />
+        <hdl_file filename="xilinx_dual_port_ram.vhd" scope="all" istop="0" />
     </hdl_files>
 
     <interrupts>

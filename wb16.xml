@@ -21,6 +21,10 @@
 
     <hdl_files>
         <hdl_file filename="spisnif.vhd" scope="all" istop="1" />
+        <hdl_file filename="dual_ports_ram_16b_1b.vhd" scope="all" istop="0" />
+        <hdl_file filename="fifo_mxsx.vhd" scope="all" istop="0" />
+        <hdl_file filename="fifo_packet.vhd" scope="all" istop="0" />
+        <hdl_file filename="xilinx_dual_port_ram.vhd" scope="all" istop="0" />
     </hdl_files>
 
     <interrupts>
@@ -51,7 +55,7 @@
             <ports>
                 <port name="gls_reset" type="RST" size="1" dir="in"/>
                 <port name="gls_clk"   type="CLK" size="1" dir="in"/>
-                <port name="wbs_add"       type="ADR"   size="4"  dir="in"/>
+                <port name="wbs_add"       type="ADR"   size="3"  dir="in"/>
                 <port name="wbs_writedata" type="DAT_I" size="16" dir="in"/>
                 <port name="wbs_readdata"  type="DAT_O" size="16" dir="out"/>
                 <port name="wbs_strobe"    type="STB"   size="1"  dir="in"/>

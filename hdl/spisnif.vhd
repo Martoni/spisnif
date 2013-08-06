@@ -158,7 +158,6 @@ Architecture spisnif_1 of spisnif is
 	signal wbs_writedata_tmp : std_logic_vector(15 downto 0) := (others => '0');
 	signal wbs_write_tmp : std_logic := '0';
 	signal wbs_strobe_old : std_logic := '0';
-	signal wbs_cycle_old : std_logic := '0';
 begin
 
 	write_enable <= cs_sync xnor cspol;
@@ -287,7 +286,6 @@ begin
 		if gls_reset = '1' then
 			-- Wishbone signals
 			wbs_readdata <= (others => '0');
-			wbs_ack <= '0';
 
 			wbs_writedata_tmp <= (others => '0');
 			wbs_write_tmp <= '0';
@@ -295,7 +293,7 @@ begin
 
 
 			-- Wishbone access
-			if wbs_strobe = '1' or wbs_cycle = '1' then
+			if wbs_strobe = '1' then
 				wbs_add_tmp <= wbs_add;
 				wbs_write_tmp <= wbs_write;
 
@@ -304,15 +302,6 @@ begin
 				else
 					wbs_readdata <= wbs_readdata_tmp;
 				end if;
-
-				wbs_ack <= '0';
-
-			-- Ack on falling edge
-			elsif 	(wbs_strobe = '0' and wbs_strobe_old = '1') or
-				(wbs_cycle = '0' and wbs_cycle_old = '1') then
-				wbs_ack <= '1';
-			else
-				wbs_ack <= '0';
 			end if;
 		end if;
 	end process;
@@ -326,7 +315,7 @@ begin
 			fifo_packet_read <= '0';
 		elsif rising_edge(gls_clk) then
 			-- Wishbone read
-			if wbs_write = '0' and (wbs_strobe = '1' or wbs_cycle = '1') then
+			if wbs_write = '0' and wbs_strobe = '1' then
 				-- Read register handling
 				case wbs_add is
 					-- Control
@@ -385,8 +374,7 @@ begin
 			cspol <= '0';
 		elsif (rising_edge(gls_clk)) then
 			-- Write when falling edge on strobe or cycle
-			if ((wbs_strobe = '0' and wbs_strobe_old = '1') or
-				(wbs_cycle = '0' and wbs_cycle_old = '1'))
+			if (wbs_strobe = '0' and wbs_strobe_old = '1') then
 				and wbs_write_tmp = '1' then
 
 				case wbs_add_tmp is
@@ -432,10 +420,8 @@ begin
 	trigger : process(gls_reset, gls_clk)
 	begin
 		if gls_reset = '1' then
-			wbs_cycle_old <= '0';
 			wbs_strobe_old <= '0';
 		elsif rising_edge(gls_clk) then
-			wbs_cycle_old <= wbs_cycle;
 			wbs_strobe_old <= wbs_strobe;
 		end if;
 	end process;

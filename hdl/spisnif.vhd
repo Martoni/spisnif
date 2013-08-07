@@ -318,7 +318,7 @@ begin
 				-- Read register handling
 				case wbs_add is
 					-- Control
-					when "000" => 	wbs_readdata_tmp <= irq_ack & fifo_reset & "000" & irq_pnum_trig;
+					when "000" => 	wbs_readdata_tmp <= fifo_reset & irq_ack & "000" & irq_pnum_trig;
 					-- Fifos
 					when "001" =>	wbs_readdata_tmp <= fifo_mosi_out;
 					when "010" =>	wbs_readdata_tmp <= fifo_miso_out;

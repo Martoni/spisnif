@@ -291,7 +291,6 @@ begin
 			wbs_write_tmp <= '0';
 		elsif rising_edge(gls_clk) then
 
-
 			-- Wishbone access
 			if wbs_strobe = '1' then
 				wbs_add_tmp <= wbs_add;
@@ -374,7 +373,7 @@ begin
 			cspol <= '0';
 		elsif (rising_edge(gls_clk)) then
 			-- Write when falling edge on strobe or cycle
-			if (wbs_strobe = '0' and wbs_strobe_old = '1') then
+			if (wbs_strobe = '0' and wbs_strobe_old = '1')
 				and wbs_write_tmp = '1' then
 
 				case wbs_add_tmp is

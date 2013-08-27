@@ -153,10 +153,6 @@ Architecture spisnif_1 of spisnif is
 	signal sck_tmp, sck_sync : std_logic := '0';
 
 	-- Wishbone signal
-	signal wbs_add_tmp : std_logic_vector(2 downto 0) := (others => '0');
-	signal wbs_readdata_tmp : std_logic_vector(15 downto 0) := (others => '0');
-	signal wbs_writedata_tmp : std_logic_vector(15 downto 0) := (others => '0');
-	signal wbs_write_tmp : std_logic := '0';
 	signal wbs_strobe_old : std_logic := '0';
 begin
 
@@ -280,35 +276,10 @@ begin
 		end if;
 	end process;
 
-	-- Wishbone interface
-	wishbone : process(gls_clk, gls_reset)
-	begin
-		if gls_reset = '1' then
-			-- Wishbone signals
-			wbs_readdata <= (others => '0');
-
-			wbs_writedata_tmp <= (others => '0');
-			wbs_write_tmp <= '0';
-		elsif rising_edge(gls_clk) then
-
-			-- Wishbone access
-			if wbs_strobe = '1' then
-				wbs_add_tmp <= wbs_add;
-				wbs_write_tmp <= wbs_write;
-
-				if wbs_write = '1' then
-					wbs_writedata_tmp <= wbs_writedata;
-				else
-					wbs_readdata <= wbs_readdata_tmp;
-				end if;
-			end if;
-		end if;
-	end process;
-
 	wishbone_read : process(gls_reset, gls_clk)
 	begin
 		if gls_reset = '1' then
-			wbs_readdata_tmp <= (others => '0');
+			wbs_readdata <= (others => '0');
 			fifo_mosi_read <= '0';
 			fifo_miso_read <= '0';
 			fifo_packet_read <= '0';
@@ -318,18 +289,18 @@ begin
 				-- Read register handling
 				case wbs_add is
 					-- Control
-					when "000" => 	wbs_readdata_tmp <= fifo_reset & irq_ack & "000" & irq_pnum_trig;
+					when "000" => 	wbs_readdata <= fifo_reset & irq_ack & "000" & irq_pnum_trig;
 					-- Fifos
-					when "001" =>	wbs_readdata_tmp <= fifo_mosi_out;
-					when "010" =>	wbs_readdata_tmp <= fifo_miso_out;
-					when "011" =>	wbs_readdata_tmp <= fifo_packet_out;
+					when "001" =>	wbs_readdata <= fifo_mosi_out;
+					when "010" =>	wbs_readdata <= fifo_miso_out;
+					when "011" =>	wbs_readdata <= fifo_packet_out;
 					-- Status
-					when "100" => 	wbs_readdata_tmp <= fifo_packet_empty&fifo_packet_full&fifo_full&"00"&packet_count;
+					when "100" => 	wbs_readdata <= fifo_packet_empty&fifo_packet_full&fifo_full&"00"&packet_count;
 					-- Config
-					when "101" => 	wbs_readdata_tmp <= "0000000000000"&cspol&cpha&cpol;
+					when "101" => 	wbs_readdata <= "0000000000000"&cspol&cpha&cpol;
 					-- Id
-					when "111" =>	wbs_readdata_tmp <= std_logic_vector(to_unsigned(Id, 16));
-					when others => 	wbs_readdata_tmp <= (others => '0');
+					when "111" =>	wbs_readdata <= std_logic_vector(to_unsigned(Id, 16));
+					when others => 	wbs_readdata <= (others => '0');
 				end case;
 
 				-- Fifo read signals handling. Index is incremented on falling edges
@@ -372,19 +343,17 @@ begin
 			cpha <= '0';
 			cspol <= '0';
 		elsif (rising_edge(gls_clk)) then
-			-- Write when falling edge on strobe or cycle
-			if (wbs_strobe = '0' and wbs_strobe_old = '1')
-				and wbs_write_tmp = '1' then
-
-				case wbs_add_tmp is
+			-- Wishbone write
+			if wbs_strobe = '1' and wbs_write = '1' then
+				case wbs_add is
 					-- Control register
-					when "000" => 	irq_pnum_trig <= wbs_writedata_tmp(10 downto 0);
-							irq_ack <= wbs_writedata_tmp(14);
-							fifo_reset <= wbs_writedata_tmp(15);
+					when "000" => 	irq_pnum_trig <= wbs_writedata(10 downto 0);
+							irq_ack <= wbs_writedata(14);
+							fifo_reset <= wbs_writedata(15);
 					-- Config
-					when "101" =>	cpol <= wbs_writedata_tmp(0);
-							cpha <= wbs_writedata_tmp(1);
-							cspol <= wbs_writedata_tmp(2);
+					when "101" =>	cpol <= wbs_writedata(0);
+							cpha <= wbs_writedata(1);
+							cspol <= wbs_writedata(2);
 					when others =>
 				end case;
 			end if;

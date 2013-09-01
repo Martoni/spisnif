@@ -110,7 +110,7 @@ begin
 				data_write_idx <= 0;
 			elsif write_ram = '1' and write_enable = '1' then --Increase index
 				data_write_idx <= (data_write_idx + 1) mod (ram_size*16);
-			elsif write_enable = '0' and write_enable_old = '1' then -- Place write index on next 16 bit word
+			elsif write_enable = '0' and write_enable_old = '1' and (data_write_idx mod 16) > 0 then -- Place write index on next 16 bit word
 				data_write_idx <= ((data_write_idx / 16) + 1) * 16;
 			end if;
 

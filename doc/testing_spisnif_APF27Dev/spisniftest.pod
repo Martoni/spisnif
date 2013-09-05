@@ -1,0 +1,15 @@
+create spisniftest
+selectplatform standard.apf27
+addcomponentslib spisniflib
+addinstance spisniflib.spisnif.wb16
+connectpin spisnif00.spi.cs apf27.fpga.IO_L03N_0
+connectpin spisnif00.spi.miso apf27.fpga.IO_L01P_0
+connectpin spisnif00.spi.mosi apf27.fpga.IO_L02N_0
+connectpin spisnif00.spi.sck apf27.fpga.IO_L01N_0
+connectpin spisnif00.wbs_interrupt.wbs_irq irq_mngr00.irq.irqport.0
+autoconnectbus
+generateintercon imx27_wb16_wrapper00.mwb16
+generateintercon rstgen_syscon00.candroutput
+generatetop
+synthesis.selecttoolchain ise
+synthesis.generateproject

@@ -1,4 +1,4 @@
-#include <as_devices/as_spi.h>
+#include <as_spi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 {
     int fd, ret, bit_count;
     unsigned long long msg;
+    unsigned char spidev_path[] = "/dev/spidev1.1";
 
     if (argc < 3) {
         print_usage();
@@ -69,7 +70,7 @@ int main(int argc, char *argv[])
 
     msg &= (1 << (bit_count+1)) - 1; //Mask unused bits
 
-    fd = as_spi_open("/dev/spidev1.1");
+    fd = as_spi_open(spidev_path);
 
     if (fd < 0)
         return EXIT_FAILURE;

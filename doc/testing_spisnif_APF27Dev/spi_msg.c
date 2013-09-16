@@ -5,9 +5,13 @@
 
 #define SPI_SPEED 100000
 
+#define DEVPATH argv[1]
+#define SEQUENCE argv[2]
+#define BITCOUNT argv[3]
+
 void print_usage()
 {
-        printf("USAGE: spi_msg 0x[HEX sequence] [bit count]\n");
+        printf("USAGE: spi_msg dev_path 0x[HEX sequence] [bit count]\n");
 }
 
 int ascii_hex_to_int(char c)
@@ -47,20 +51,19 @@ int main(int argc, char *argv[])
 {
     int fd, ret, bit_count;
     unsigned long long msg;
-    unsigned char spidev_path[] = "/dev/spidev1.1";
 
-    if (argc < 3) {
+    if (argc != 4) {
         print_usage();
         return EXIT_SUCCESS;
     }
 
-    if ((argv[1][0] != '0') && (argv[1][1] != 'x')) {
+    if ((SEQUENCE[0] != '0') && (SEQUENCE[1] != 'x')) {
         print_usage();
         return EXIT_SUCCESS;
     }
 
-    msg = ascii_to_hex(argv[1]+2);
-    bit_count = atoi(argv[2]);
+    msg = ascii_to_hex(SEQUENCE+2);
+    bit_count = atoi(BITCOUNT);
 
     if (bit_count < 1) {
         printf("[ERROR] Bad bit number to send.\n");
@@ -70,10 +73,12 @@ int main(int argc, char *argv[])
 
     msg &= (1 << (bit_count+1)) - 1; //Mask unused bits
 
-    fd = as_spi_open(spidev_path);
+    fd = as_spi_open((unsigned char *)DEVPATH);
 
-    if (fd < 0)
+    if (fd < 0) {
+        printf("Error: can't open spidev %s\n", DEVPATH);
         return EXIT_FAILURE;
+    }
 
     printf("Sending 0x%llX (%d bits)\n", msg, bit_count);
     ret = as_spi_msg(fd, msg, bit_count, SPI_SPEED);

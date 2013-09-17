@@ -61,6 +61,14 @@
 #define SPISNIF_CONFIG_CPHA  (0x0002)
 #define SPISNIF_CONFIG_CPOL  (0x0001)
 
+
+static int keepRunning = 1;
+
+void intHandler(int dummy) {
+    printf("Ctrl-C captured\n");
+    keepRunning = 0;
+}
+
 void print_usage()
 {
         printf("command:\n");
@@ -119,7 +127,7 @@ char *bit_vector(unsigned short value, int lenght) {
             vector[i] = '0';
         tmp_value = tmp_value << 1;
     }
-    vector[16] = '\0';
+    vector[i] = '\0';
 
     return vector;
 }
@@ -147,9 +155,13 @@ int main(int argc, char *argv[])
 	void* ptr_fpga;
     int frame_num;
     int bit_num;
+    int bit_num_tmp;
     int i, j;
+    unsigned short raw_value;
     unsigned short config = 0;
 
+
+    signal(SIGINT, intHandler);
 
     /* open fpga memory zone */
 	ffpga = open("/dev/mem", O_RDWR|O_SYNC);
@@ -177,41 +189,44 @@ int main(int argc, char *argv[])
         printf("reseting ...\n");
         spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, SPISNIF_RESET_FLG);
         spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, 0);
-
-        printf("write config %04X\n", config);
         spisnif_write(ptr_fpga, SPISNIF_CONFIG_REG, config);
 
    /* print usages */
     } else if (argc==1){
 
-        frame_num = spisnif_read(ptr_fpga, SPISNIF_STATUS_REG);
-        if (frame_num == 0x8000) {
-            printf("No frame captured\n");
-            frame_num = 0;
-        } else if(frame_num < (1<<11)) {
-            printf("%d frame captured\n", frame_num);
-        } else {
-            printf("Error status : %04X\n", frame_num);
-        }
+        printf("Launching spi sniffing ...\n");
+        while(keepRunning) {
 
-        for(i=0; i < frame_num; i++) {
-            bit_num = spisnif_read(ptr_fpga, SPISNIF_FIFO_PACKET_REG);
-            printf("\npacket %d, %d bits ->\n", i, bit_num);
-            printf(" MOSI:");
-            for(j=0; j < ((bit_num-1)/16) + 1; j++) {
-                if (j == (bit_num-1)/16)
-                    printf(" %s", bit_vector(petit_indien(spisnif_read(ptr_fpga, SPISNIF_FIFO_MOSI_REG)), bit_num%16));
-                else
-                    printf(" %s", bit_vector(petit_indien(spisnif_read(ptr_fpga, SPISNIF_FIFO_MOSI_REG)), 16));
+            frame_num = spisnif_read(ptr_fpga, SPISNIF_STATUS_REG);
+            if (frame_num == 0x8000) {
+                frame_num = 0;
+            } else if(frame_num < (1<<11)) {
+                for(i=0; i < frame_num; i++) {
+                    bit_num = spisnif_read(ptr_fpga, SPISNIF_FIFO_PACKET_REG);
+                    bit_num_tmp = bit_num;
+                    printf("(%03d)MOSI: ", bit_num);
+                    for(j=0; j < ((bit_num-1)/16)+1; j++) {
+                            raw_value = spisnif_read(ptr_fpga, SPISNIF_FIFO_MOSI_REG);
+                            printf("(%04x)%s", raw_value, bit_vector(petit_indien(raw_value), (bit_num_tmp>15)?16:bit_num_tmp));
+                            bit_num_tmp = bit_num_tmp - 16;
+
+                    }
+                    printf("\n");
+                    bit_num_tmp = bit_num;
+                    printf("(%03d)MISO: ", bit_num);
+                    for(j=0; j < ((bit_num-1)/16)+1; j++) {
+                            raw_value = spisnif_read(ptr_fpga, SPISNIF_FIFO_MISO_REG);
+                            printf("(%04x)%s", raw_value, bit_vector(petit_indien(raw_value), (bit_num_tmp>15)?16:bit_num_tmp));
+                            bit_num_tmp = bit_num_tmp - 16;
+                    }
+                    printf("\n\n");
+                }
+            } else {
+                printf("Error status : %04X\n", frame_num);
+                keepRunning = 0;
+                frame_num = 0;
             }
-            printf("\n MISO:");
-            for(j=0; j < ((bit_num-1)/16) + 1; j++) {
-                if (j == (bit_num-1)/16)
-                    printf(" %s", bit_vector(petit_indien(spisnif_read(ptr_fpga, SPISNIF_FIFO_MISO_REG)), bit_num%16));
-                else
-                    printf(" %s", bit_vector(petit_indien(spisnif_read(ptr_fpga, SPISNIF_FIFO_MISO_REG)), 16));
-            }
-            printf("\n");
+
         }
 
     } else {

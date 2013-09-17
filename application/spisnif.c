@@ -64,9 +64,7 @@
 void print_usage()
 {
         printf("command:\n");
-        printf("Reseting component\n");
-        printf("$ spisnif -r\n");
-        printf("read frames\n");
+        printf("Reseting component with configuration\n");
         printf("$ spisnif (-)cspol (-)cpha (-)cpol\n");
         printf("        cspol    active\n");
         printf("       -cspol    inactive\n");
@@ -74,6 +72,8 @@ void print_usage()
         printf("       -cpha     inactive\n");
         printf("        cpol     active\n");
         printf("       -cpol     inactive\n");
+        printf("Read frames :\n");
+        printf("$ spisnif\n");
 }
 
 unsigned short spisnif_read(void* ptr_fpga, int addr)
@@ -102,6 +102,27 @@ unsigned short petit_indien(unsigned short value) {
             ((balign_value>>3)&0x1111);
 }
 
+char *bit_vector(unsigned short value, int lenght) {
+    char *vector = malloc(17*sizeof(char));
+    unsigned short tmp_value = value;
+    int i;
+   
+    if ((lenght > 16) || (lenght < 0)) {
+        printf("bit_vector error lenght %d\n", lenght);
+        return NULL;
+    }
+
+    for (i = 0; i < lenght; i++) {
+        if (tmp_value&0x8000)
+            vector[i] = '1';
+        else
+            vector[i] = '0';
+        tmp_value = tmp_value << 1;
+    }
+    vector[16] = '\0';
+
+    return vector;
+}
 
 void print_map(void* ptr_fpga) {
     printf("SPISNIF_CONTROL_REG     (%02X) -> %04X\n",
@@ -143,18 +164,8 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-    /* reset spisnif component */
-    if( argc == 2) {
-        if (strcmp(argv[1], "-r") == 0) {
-            printf("reseting ...\n");
-            spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, SPISNIF_RESET_FLG); 
-            spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, 0); 
-        } else {
-            print_map(ptr_fpga);
-        }
-        return 0;
-    /* read frames with config given */
-    } else if (argc == 4) { 
+    /* reset component with config given */
+    if (argc == 4) { 
 
         if (strcmp(argv[1], "cspol") == 0)
             config |= SPISNIF_CONFIG_CSPOL;
@@ -163,8 +174,15 @@ int main(int argc, char *argv[])
         if (strcmp(argv[3], "cpol") == 0)
             config |= SPISNIF_CONFIG_CPOL;
 
+        printf("reseting ...\n");
+        spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, SPISNIF_RESET_FLG); 
+        spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, 0); 
+
         printf("write config %04X\n", config);
         spisnif_write(ptr_fpga, SPISNIF_CONFIG_REG, config);
+
+   /* print usages */
+    } else if (argc==1){
 
         frame_num = spisnif_read(ptr_fpga, SPISNIF_STATUS_REG);
         if (frame_num == 0x8000) {
@@ -181,15 +199,21 @@ int main(int argc, char *argv[])
             printf("\npacket %d, %d bits ->\n", i, bit_num);
             printf(" MOSI:");
             for(j=0; j < ((bit_num-1)/16) + 1; j++) {
-                printf(" %04X,", petit_indien(spisnif_read(ptr_fpga, SPISNIF_FIFO_MOSI_REG)));
+                if (j == (bit_num-1)/16)
+                    printf(" %s", bit_vector(petit_indien(spisnif_read(ptr_fpga, SPISNIF_FIFO_MOSI_REG)), bit_num%16));
+                else
+                    printf(" %s", bit_vector(petit_indien(spisnif_read(ptr_fpga, SPISNIF_FIFO_MOSI_REG)), 16));
             }
             printf("\n MISO:");
             for(j=0; j < ((bit_num-1)/16) + 1; j++) {
-                printf(" %04X,", petit_indien(spisnif_read(ptr_fpga, SPISNIF_FIFO_MISO_REG)));
+                if (j == (bit_num-1)/16)
+                    printf(" %s", bit_vector(petit_indien(spisnif_read(ptr_fpga, SPISNIF_FIFO_MISO_REG)), bit_num%16));
+                else
+                    printf(" %s", bit_vector(petit_indien(spisnif_read(ptr_fpga, SPISNIF_FIFO_MISO_REG)), 16));
             }
             printf("\n");
         }
-    /* print usages */
+ 
     } else {
         print_usage();
     }

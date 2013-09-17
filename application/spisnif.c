@@ -92,10 +92,10 @@ unsigned short petit_indien(unsigned short value) {
 //    return value;
     unsigned short walign_value = ((value << 8)&0xFF00) | ((value >> 8)&0x00FF);
     unsigned short balign_value;
-   
+
     balign_value = (walign_value << 4)&0xF0F0;
     balign_value |= (walign_value >> 4)&0x0F0F;
-   
+
     return  ((balign_value<<3)&0x8888)|
             ((balign_value<<1)&0x4444)|
             ((balign_value>>1)&0x2222)|
@@ -106,7 +106,7 @@ char *bit_vector(unsigned short value, int lenght) {
     char *vector = malloc(17*sizeof(char));
     unsigned short tmp_value = value;
     int i;
-   
+
     if ((lenght > 16) || (lenght < 0)) {
         printf("bit_vector error lenght %d\n", lenght);
         return NULL;
@@ -126,19 +126,19 @@ char *bit_vector(unsigned short value, int lenght) {
 
 void print_map(void* ptr_fpga) {
     printf("SPISNIF_CONTROL_REG     (%02X) -> %04X\n",
-           SPISNIF_CONTROL_REG     ,spisnif_read(ptr_fpga,SPISNIF_CONTROL_REG)); 
+           SPISNIF_CONTROL_REG     ,spisnif_read(ptr_fpga,SPISNIF_CONTROL_REG));
     printf("SPISNIF_FIFO_MOSI_REG   (%02X) -> %04X\n",
-           SPISNIF_FIFO_MOSI_REG   ,spisnif_read(ptr_fpga,SPISNIF_FIFO_MOSI_REG)); 
+           SPISNIF_FIFO_MOSI_REG   ,spisnif_read(ptr_fpga,SPISNIF_FIFO_MOSI_REG));
     printf("SPISNIF_FIFO_MISO_REG   (%02X) -> %04X\n",
-           SPISNIF_FIFO_MISO_REG   ,spisnif_read(ptr_fpga,SPISNIF_FIFO_MISO_REG)); 
+           SPISNIF_FIFO_MISO_REG   ,spisnif_read(ptr_fpga,SPISNIF_FIFO_MISO_REG));
     printf("SPISNIF_FIFO_PACKET_REG (%02X) -> %04X\n",
            SPISNIF_FIFO_PACKET_REG ,spisnif_read(ptr_fpga,SPISNIF_FIFO_PACKET_REG));
     printf("SPISNIF_STATUS_REG      (%02X) -> %04X\n",
-           SPISNIF_STATUS_REG      ,spisnif_read(ptr_fpga,SPISNIF_STATUS_REG)); 
+           SPISNIF_STATUS_REG      ,spisnif_read(ptr_fpga,SPISNIF_STATUS_REG));
     printf("SPISNIF_CONFIG_REG      (%02X) -> %04X\n",
-           SPISNIF_CONFIG_REG      ,spisnif_read(ptr_fpga,SPISNIF_CONFIG_REG)); 
+           SPISNIF_CONFIG_REG      ,spisnif_read(ptr_fpga,SPISNIF_CONFIG_REG));
     printf("SPISNIF_ID_REG          (%02X) -> %04X\n",
-           SPISNIF_ID_REG          ,spisnif_read(ptr_fpga,SPISNIF_ID_REG)); 
+           SPISNIF_ID_REG          ,spisnif_read(ptr_fpga,SPISNIF_ID_REG));
 }
 
 int main(int argc, char *argv[])
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
 	}
 
     /* reset component with config given */
-    if (argc == 4) { 
+    if (argc == 4) {
 
         if (strcmp(argv[1], "cspol") == 0)
             config |= SPISNIF_CONFIG_CSPOL;
@@ -175,8 +175,8 @@ int main(int argc, char *argv[])
             config |= SPISNIF_CONFIG_CPOL;
 
         printf("reseting ...\n");
-        spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, SPISNIF_RESET_FLG); 
-        spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, 0); 
+        spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, SPISNIF_RESET_FLG);
+        spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, 0);
 
         printf("write config %04X\n", config);
         spisnif_write(ptr_fpga, SPISNIF_CONFIG_REG, config);
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
         } else {
             printf("Error status : %04X\n", frame_num);
         }
-    
+
         for(i=0; i < frame_num; i++) {
             bit_num = spisnif_read(ptr_fpga, SPISNIF_FIFO_PACKET_REG);
             printf("\npacket %d, %d bits ->\n", i, bit_num);
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
             }
             printf("\n");
         }
- 
+
     } else {
         print_usage();
     }

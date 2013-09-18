@@ -276,6 +276,17 @@ void print_map(void* ptr_fpga) {
            SPISNIF_ID_REG          ,spisnif_read(ptr_fpga,SPISNIF_ID_REG));
 }
 
+void reset_spisnif(void * ptr_fpga) {
+    unsigned short value;
+    value = spisnif_read(ptr_fpga, SPISNIF_CONTROL_REG);
+    spisnif_write(ptr_fpga,
+                  SPISNIF_CONTROL_REG,
+                  value | SPISNIF_RESET_FLG);
+    spisnif_write(ptr_fpga,
+                  SPISNIF_CONTROL_REG,
+                  value);
+}
+
 int main(int argc, char *argv[])
 {
 	int ffpga;
@@ -309,9 +320,8 @@ int main(int argc, char *argv[])
             config |= SPISNIF_CONFIG_CPOL;
 
         printf("reseting ...\n");
-        spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, SPISNIF_RESET_FLG);
-        spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, 0);
         spisnif_write(ptr_fpga, SPISNIF_CONFIG_REG, config);
+        reset_spisnif(ptr_fpga);
 
     /* print usages */
     } else if (argc==1){
@@ -323,7 +333,8 @@ int main(int argc, char *argv[])
                 printf("%d frames read\n", flist->frame_num);
                 print_frame_list(flist);
                 free_frame_list(flist);
-            }
+            } else
+                reset_spisnif(ptr_fpga);
             sleep(1); //XXX
         }
 

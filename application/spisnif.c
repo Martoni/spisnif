@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <sys/stat.h>	/* file management */
 #include <fcntl.h>
 #include <signal.h>
@@ -64,8 +65,19 @@
 
 static int keepRunning = 1;
 
+struct spi_frame {
+    int bit_num;
+    unsigned short *mosi;
+    unsigned short *miso;
+};
+
+struct spi_frame_list {
+    int frame_num;
+    struct spi_frame **frames;
+};
+
 void intHandler(int dummy) {
-    printf("Ctrl-C captured\n");
+    printf("Crl-C captured\n");
     keepRunning = 0;
 }
 
@@ -110,6 +122,69 @@ unsigned short petit_indien(unsigned short value) {
             ((balign_value>>3)&0x1111);
 }
 
+struct spi_frame_list *read_frames(void *ptr_fpga) {
+    struct spi_frame_list *flist;
+    unsigned short read_value;
+    int i, j;
+
+    read_value = spisnif_read(ptr_fpga, SPISNIF_STATUS_REG);
+    if ((read_value == 0x8000)||(read_value >= (1<<11))||(read_value == 0))
+        return NULL;
+
+    flist = (struct spi_frame_list *)malloc(sizeof(struct spi_frame_list));
+    if (flist == NULL) {
+        printf("can't allocate memory for struct flist\n");
+        return NULL;
+    }
+
+    flist->frame_num = (int)read_value;
+
+    /* allocate memory for frames */
+    flist->frames = (struct spi_frame **)
+                    malloc(flist->frame_num*sizeof(struct spi_frame *));
+    if (flist->frames == NULL) {
+        printf("can't allocate memory for struct flist->frames\n");
+        goto free_list;
+    }
+    for (i = 0; i < flist->frame_num; i++) {
+        flist->frames[i] = (struct spi_frame *)malloc(sizeof(struct spi_frame));
+        if (flist->frames[i] == NULL) {
+            printf("Error allocating memory for spi_frames[%d]\n", i);
+            return NULL;
+        }
+        read_value = spisnif_read(ptr_fpga, SPISNIF_FIFO_PACKET_REG);
+        if (read_value == 0) {
+            flist->frames[i]->bit_num = 0;
+            //flist->frames[i]->mosi == NULL;
+            //flist->frames[i]->miso == NULL;
+        } else {
+            flist->frames[i]->bit_num = read_value;
+            flist->frames[i]->mosi = (unsigned short *)malloc(((read_value-1)/16+1)*sizeof(unsigned short));
+            if (flist->frames[i]->mosi == NULL) {
+                printf("Error allocating memory for  flist->frames[%d]->mosi\n", i);
+                return NULL;
+            }
+            flist->frames[i]->miso = (unsigned short *)malloc(((read_value-1)/16+1)*sizeof(unsigned short));
+            if (flist->frames[i]->miso == NULL) {
+                printf("Error allocating memory for  flist->frames[%d]->miso\n", i);
+                return NULL;
+            }
+
+            /* read all values */
+            for (j = 0; j < ((flist->frames[i]->bit_num - 1)/16 + 1); j++) {
+                flist->frames[i]->mosi[j] = spisnif_read(ptr_fpga, SPISNIF_FIFO_MOSI_REG);
+                flist->frames[i]->miso[j] = spisnif_read(ptr_fpga, SPISNIF_FIFO_MISO_REG);
+            }
+        }
+    }
+
+    return flist;
+
+free_list:
+    free(flist);
+    return NULL;
+}
+
 char *bit_vector(unsigned short value, int lenght) {
     char *vector = malloc(17*sizeof(char));
     unsigned short tmp_value = value;
@@ -130,6 +205,58 @@ char *bit_vector(unsigned short value, int lenght) {
     vector[i] = '\0';
 
     return vector;
+}
+
+void print_frame_list(struct spi_frame_list *flist) {
+    int i;
+    int j;
+    int bit_num_tmp;
+
+    for (i=0; i < flist->frame_num; i++) {
+        bit_num_tmp = flist->frames[i]->bit_num;
+        if(bit_num_tmp != 0) {
+            printf("(%03d)MOSI: ", flist->frames[i]->bit_num);
+            for(j=0; j < ((flist->frames[i]->bit_num-1)/16)+1; j++) {
+                    printf("(%04x)%s",
+                           flist->frames[i]->mosi[j],
+                           bit_vector(
+                                      petit_indien(flist->frames[i]->mosi[j]),
+                                      (bit_num_tmp>15)?16:bit_num_tmp)
+                           );
+                    bit_num_tmp = bit_num_tmp - 16;
+            }
+            printf("\n");
+            bit_num_tmp = flist->frames[i]->bit_num;
+            printf("(%03d)MOSI: ", flist->frames[i]->bit_num);
+            for(j=0; j < ((flist->frames[i]->bit_num-1)/16)+1; j++) {
+                    printf("(%04x)%s",
+                           flist->frames[i]->miso[j],
+                           bit_vector(
+                                      petit_indien(flist->frames[i]->miso[j]),
+                                      (bit_num_tmp>15)?16:bit_num_tmp)
+                           );
+                    bit_num_tmp = bit_num_tmp - 16;
+            }
+            printf("\n\n");
+        } else
+            printf("Void CS\n\n");
+    }
+}
+
+void free_frame_list(struct spi_frame_list *flist) {
+    int i;
+
+    if (flist != NULL) {
+        for (i=0; i < flist->frame_num; i++) {
+            if (flist->frames[i]->bit_num != 0) {
+                free(flist->frames[i]->mosi);
+                free(flist->frames[i]->miso);
+            }
+            free(flist->frames[i]);
+        }
+        free(flist->frames);
+        free(flist);
+    }
 }
 
 void print_map(void* ptr_fpga) {
@@ -153,13 +280,8 @@ int main(int argc, char *argv[])
 {
 	int ffpga;
 	void* ptr_fpga;
-    int frame_num;
-    int bit_num;
-    int bit_num_tmp;
-    int i, j;
-    unsigned short raw_value;
     unsigned short config = 0;
-
+    struct spi_frame_list *flist;
 
     signal(SIGINT, intHandler);
 
@@ -191,42 +313,18 @@ int main(int argc, char *argv[])
         spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, 0);
         spisnif_write(ptr_fpga, SPISNIF_CONFIG_REG, config);
 
-   /* print usages */
+    /* print usages */
     } else if (argc==1){
 
         printf("Launching spi sniffing ...\n");
         while(keepRunning) {
-
-            frame_num = spisnif_read(ptr_fpga, SPISNIF_STATUS_REG);
-            if (frame_num == 0x8000) {
-                frame_num = 0;
-            } else if(frame_num < (1<<11)) {
-                for(i=0; i < frame_num; i++) {
-                    bit_num = spisnif_read(ptr_fpga, SPISNIF_FIFO_PACKET_REG);
-                    bit_num_tmp = bit_num;
-                    printf("(%03d)MOSI: ", bit_num);
-                    for(j=0; j < ((bit_num-1)/16)+1; j++) {
-                            raw_value = spisnif_read(ptr_fpga, SPISNIF_FIFO_MOSI_REG);
-                            printf("(%04x)%s", raw_value, bit_vector(petit_indien(raw_value), (bit_num_tmp>15)?16:bit_num_tmp));
-                            bit_num_tmp = bit_num_tmp - 16;
-
-                    }
-                    printf("\n");
-                    bit_num_tmp = bit_num;
-                    printf("(%03d)MISO: ", bit_num);
-                    for(j=0; j < ((bit_num-1)/16)+1; j++) {
-                            raw_value = spisnif_read(ptr_fpga, SPISNIF_FIFO_MISO_REG);
-                            printf("(%04x)%s", raw_value, bit_vector(petit_indien(raw_value), (bit_num_tmp>15)?16:bit_num_tmp));
-                            bit_num_tmp = bit_num_tmp - 16;
-                    }
-                    printf("\n\n");
-                }
-            } else {
-                printf("Error status : %04X\n", frame_num);
-                keepRunning = 0;
-                frame_num = 0;
+            flist = read_frames(ptr_fpga);
+            if (flist != NULL) {
+                printf("%d frames read\n", flist->frame_num);
+                print_frame_list(flist);
+                free_frame_list(flist);
             }
-
+            sleep(1); //XXX
         }
 
     } else {
@@ -236,5 +334,6 @@ int main(int argc, char *argv[])
     munmap(ptr_fpga, FPGA_MAP_SIZE);
     close(ffpga);
 
+    printf("Spisnif end...\n");
     return EXIT_SUCCESS;
 }

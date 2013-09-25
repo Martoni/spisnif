@@ -1,6 +1,7 @@
 /* spisnif.c
  *
- * simple polling program for testing spisnif
+ * simple driverless program for testing spisnif
+ * require kernel >= 2.6.38 (to use gpiolib interrupts)
  *
  * (c) Copyright 2013 The Armadeus Project - ARMadeus Systems
  * Fabien Marteau <fabien.marteau@armadeus.com>
@@ -18,6 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
  ***********************************************************************/
 
 #include <stdio.h>
@@ -29,7 +31,10 @@
 #include <signal.h>
 #include <unistd.h>	/* sleep, write(), read() */
 #include <string.h>	/* converting string */
+#include <errno.h>
 #include <sys/mman.h>	/* memory management */
+#include <sys/utsname.h>
+#include <as_gpio.h>
 
 /* for IMX27 */
 #define PLATFORM "APF27"
@@ -46,6 +51,10 @@
 
 #define WORD_ACCESS (2)
 #define LONG_ACCESS (4)
+
+#define IRQ_BASE                0x00
+#define IRQ_MNGR_MASK_REG       (IRQ_BASE + 0x00)
+#define IRQ_MNGR_PENDING_REG    (IRQ_BASE + 0x02)
 
 #define SPISNIF_BASE            0x10
 #define SPISNIF_CONTROL_REG     (SPISNIF_BASE + 0x00)
@@ -285,6 +294,8 @@ void reset_spisnif(void * ptr_fpga) {
     spisnif_write(ptr_fpga,
                   SPISNIF_CONTROL_REG,
                   value);
+    /* acknowledge irq */
+    spisnif_write(ptr_fpga, IRQ_MNGR_PENDING_REG, 0x01);
 }
 
 int main(int argc, char *argv[])
@@ -293,8 +304,35 @@ int main(int argc, char *argv[])
 	void* ptr_fpga;
     unsigned short config = 0;
     struct spi_frame_list *flist;
+    int ret;
+    struct utsname uname_value;
+    struct as_gpio_device *pf12;
 
     signal(SIGINT, intHandler);
+
+    pf12 = as_gpio_open(5*32 + 12); /* PF12 -> fpga_init */
+    if (pf12 == NULL) {
+        printf("Can't open gpio PF12 (fpga interrupt)\n");
+        goto close_gpio;
+    }
+
+    ret = as_gpio_set_pin_direction(pf12, "in");
+    if (ret < 0) {
+        printf("Can't set pin direction of pf12\n");
+        goto close_gpio;
+    }
+
+    ret = as_gpio_set_irq_mode(pf12, "rising");
+    if (ret < 0) {
+        printf("Can't set irq mode\n");
+        goto close_gpio;
+    }
+
+    ret = uname(&uname_value);
+    if (ret < 0)
+        printf("Warning: Can't get kernel information\n");
+
+    printf("Your kernel version is %s, please check if it's >= 2.6.38\n", uname_value.release);
 
     /* open fpga memory zone */
 	ffpga = open("/dev/mem", O_RDWR|O_SYNC);
@@ -309,6 +347,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
+
     /* reset component with config given */
     if (argc == 4) {
 
@@ -321,21 +360,37 @@ int main(int argc, char *argv[])
 
         printf("reseting ...\n");
         spisnif_write(ptr_fpga, SPISNIF_CONFIG_REG, config);
+        /* write control register */
+        spisnif_write(ptr_fpga, SPISNIF_CONTROL_REG, 0x01);
         reset_spisnif(ptr_fpga);
 
     /* print usages */
     } else if (argc==1){
 
         printf("Launching spi sniffing ...\n");
+        /* activate IRQ */
+        spisnif_write(ptr_fpga, IRQ_MNGR_PENDING_REG, 0x01);
+        spisnif_write(ptr_fpga, IRQ_MNGR_MASK_REG, 0x01);
         while(keepRunning) {
+
+            ret = as_gpio_wait_event(pf12, 10000);
+            if (ret == -ETIMEDOUT)
+                printf("timeout\n");
+            else if(ret < 0) {
+                printf("Event error %d\n", ret);
+                keepRunning = 0;
+            } else {
+                /* acknowledge irq */
+                spisnif_write(ptr_fpga, IRQ_MNGR_MASK_REG, 0x01);
+            }
+
             flist = read_frames(ptr_fpga);
             if (flist != NULL) {
                 printf("%d frames read\n", flist->frame_num);
-                print_frame_list(flist);
+                //print_frame_list(flist);
                 free_frame_list(flist);
             } else
                 reset_spisnif(ptr_fpga);
-            sleep(1); //XXX
         }
 
     } else {
@@ -344,6 +399,8 @@ int main(int argc, char *argv[])
 
     munmap(ptr_fpga, FPGA_MAP_SIZE);
     close(ffpga);
+close_gpio:
+    as_gpio_close(pf12);
 
     printf("Spisnif end...\n");
     return EXIT_SUCCESS;

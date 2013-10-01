@@ -154,6 +154,7 @@ Architecture spisnif_1 of spisnif is
 
 	-- Wishbone signal
 	signal wbs_strobe_old : std_logic := '0';
+	signal wbs_write_old : std_logic := '0';
 begin
 
 	write_enable <= cs_sync xnor cspol;
@@ -344,8 +345,8 @@ begin
 			cspol <= '0';
 		elsif (rising_edge(gls_clk)) then
 			-- Wishbone write
-			if wbs_strobe = '1' and wbs_write = '1' then
-				case wbs_add is
+                        -- Write on falling edge of strobe. Old status of wbs_write must be considered.
+			if wbs_strobe = '1' and wbs_strobe_old = '1' and wbs_write_old = '1' then 				case wbs_add is
 					-- Control register
 					when "000" => 	irq_pnum_trig <= wbs_writedata(10 downto 0);
 							irq_ack <= wbs_writedata(14);
@@ -389,8 +390,10 @@ begin
 	begin
 		if gls_reset = '1' then
 			wbs_strobe_old <= '0';
+                        wbs_write_old <= '0';
 		elsif rising_edge(gls_clk) then
 			wbs_strobe_old <= wbs_strobe;
+                        wbs_write_old <= wbs_write;
 		end if;
 	end process;
 
